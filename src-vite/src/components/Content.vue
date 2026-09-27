@@ -292,6 +292,7 @@
             >
               <MediaViewer
                 ref="filmStripMediaRef"
+                @close="closeFilmstripFullScreen"
                 :mode="1"
                 :isFullScreen="false"
                 :file="fileList[selectedItemIndex]"
@@ -716,6 +717,7 @@ import { ref, watch, computed, createVNode, onMounted, onBeforeUnmount, nextTick
 import { emit as tauriEmit, listen } from '@tauri-apps/api/event';
 import { ask, open as openDialog } from '@tauri-apps/plugin-dialog';
 import { WebviewWindow } from '@tauri-apps/api/webviewWindow';
+import { PREVIEW_WINDOW_FOCUS_RESTORED } from '@/common/previewWindow';
 import { useI18n } from 'vue-i18n';
 import { useToast } from '@/common/toast';
 import { useUIStore } from '@/stores/uiStore';
@@ -1871,6 +1873,11 @@ const filmStripZoomFit = ref(true);
 function closeQuickPreview() {
   showQuickView.value = false;
   stopSlideShow();
+}
+
+function closeFilmstripFullScreen() {
+  stopSlideShow();
+  void filmStripMediaRef.value?.exitPreviewFullScreen();
 }
 
 function setPreviewViewBackground(value: number) {
@@ -4218,9 +4225,18 @@ function handleLocalKeyDown(event: KeyboardEvent) {
   }
 
   if (matchesShortcut('view.close', event, shortcutPlatform)) {
-    if (selectMode.value && showQuickView.value) {
-      closeQuickPreview();
+    // Close Quick Preview in one step, even in fullscreen. Unmount restores
+    // the native window while preserving the saved fullscreen preference.
+    if (showQuickView.value) {
       event.preventDefault();
+      closeQuickPreview();
+      return;
+    }
+    // Filmstrip is an embedded layout, so Escape returns to that layout.
+    const preview = getActivePreviewMediaRef();
+    if (preview?.isFullScreen) {
+      event.preventDefault();
+      void preview.exitPreviewFullScreen();
       return;
     }
     if (selectMode.value) {
@@ -4229,11 +4245,6 @@ function handleLocalKeyDown(event: KeyboardEvent) {
       } else {
         handleSelectMode(false);
       }
-      event.preventDefault();
-      return;
-    }
-    if (showQuickView.value) {
-      closeQuickPreview();
       event.preventDefault();
       return;
     }
@@ -4515,6 +4526,11 @@ function isContentInteractionActive() {
 function activateContentPane() {
   uiStore.setActivePane('content');
   contentRootRef.value?.focus({ preventScroll: true });
+}
+
+function restoreOpenPreviewFocus() {
+  if (uiStore.inputStack.length > 0) return;
+  activateContentPane();
 }
 
 function handleContentWheel(event: WheelEvent) {
@@ -5110,6 +5126,7 @@ onMounted( async() => {
   hasRestoredInitialSelection = false;
 
   window.addEventListener('keydown', handleLocalKeyDown);
+  window.addEventListener(PREVIEW_WINDOW_FOCUS_RESTORED, restoreOpenPreviewFocus);
   window.addEventListener('keyup', handleLocalKeyUp);
   unlistenKeydown = await listen('global-keydown', handleKeyDown);
 
@@ -5582,6 +5599,7 @@ onBeforeUnmount(() => {
     layoutRefreshTimer = null;
   }
   window.removeEventListener('keydown', handleLocalKeyDown);
+  window.removeEventListener(PREVIEW_WINDOW_FOCUS_RESTORED, restoreOpenPreviewFocus);
   window.removeEventListener('keyup', handleLocalKeyUp);
   // unlisten
   unlistenImageViewer();
@@ -9489,8 +9507,15 @@ const handleGroupSelect = (optionIndex: any) => {
 };
 
 const toggleInfoPanel = () => {
-  checkUnsavedChanges(() => {
-    if (isInfoPanelOpen.value) {
+  checkUnsavedChanges(async () => {
+    const preview = getActivePreviewMediaRef();
+    const wasPreviewFullScreen = !!preview?.isFullScreen;
+    if (wasPreviewFullScreen) {
+      await preview.exitPreviewFullScreen();
+      // A pending transition or failed window restore must not open a hidden panel.
+      if (preview.isFullScreen) return;
+    }
+    if (isInfoPanelOpen.value && !wasPreviewFullScreen) {
       config.rightPanel.show = false;
       return;
     }

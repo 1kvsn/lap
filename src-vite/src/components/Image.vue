@@ -72,7 +72,7 @@
           transform: `translate(${position[activeImage].x}px, ${position[activeImage].y}px) 
                       scale(${scale[activeImage]}) 
                       rotate(${imageRotate[activeImage]}deg)`,
-          transition: !isDraggingImage && !noTransition ? (isDraggingNavBox ? 'transform 0.2s ease-out' : 'transform 0.3s ease-in-out') : 'none',
+          transition: !isDraggingImage && !noTransition && !isResizingContainer ? (isDraggingNavBox ? 'transform 0.2s ease-out' : 'transform 0.3s ease-in-out') : 'none',
         }"
       >
         <div
@@ -286,6 +286,8 @@ const showNavigator = computed(() =>
   || (config.settings.navigatorViewMode === 0 && isGrabbing.value && navigatorAutoVisible.value)
 );
 let navigatorAutoHideTimer: ReturnType<typeof setTimeout> | null = null;
+const isResizingContainer = ref(false);
+let resizeTransitionFrame = 0;
 const noTransition = ref(false);            // Disable transition temporarily
 const lastMousePosition = ref({ x: 0, y: 0 }); // Last mouse position for drag calculations
 const mousePosition = ref({ x: 0, y: 0 });  // Current mouse position
@@ -364,7 +366,7 @@ const getImageStyle = (index: number) => ({
   transform: `translate3d(${position.value[index].x}px, ${position.value[index].y}px, 0)
               scale(${scale.value[index]})
               rotate(${imageRotate.value[index]}deg)`,
-  transition: !isSliding.value && !isDraggingImage.value && !noTransition.value && !isWheelZooming.value
+  transition: !isSliding.value && !isDraggingImage.value && !noTransition.value && !isResizingContainer.value && !isWheelZooming.value
     ? (isDraggingNavBox.value ? 'transform 0.2s ease-out' : 'transform 0.3s ease-in-out')
     : 'none',
   willChange: 'transform',
@@ -1037,6 +1039,8 @@ onMounted(() => {
 });
 
 onBeforeUnmount(() => {
+  cancelAnimationFrame(resizeTransitionFrame);
+  if (debounceTimeout) clearTimeout(debounceTimeout);
   if (resizeObserver && container.value) {
     resizeObserver.unobserve(container.value);
     resizeObserver.disconnect();
@@ -1566,9 +1570,29 @@ watch(() => props.isZoomFit, (newValue) => {
   updateZoomFit();
 });
 
-// watch container or image size changes with debouncing
+// A resize changes the coordinate system, not the user's zoom intent. Apply
+// its fit/position before paint instead of displaying the old layout for 100ms
+// and then animating from that stale position (especially after Teleport).
+watch(containerSize, (size) => {
+  if (size.width <= 0 || size.height <= 0) return;
+  const image = imageSizeRotated.value[activeImage.value];
+  if (image.width <= 0 || image.height <= 0) return;
+  isResizingContainer.value = true;
+  cancelAnimationFrame(resizeTransitionFrame);
+  if (isZoomFit.value) zoomFit();
+  else clampPosition();
+  // Keep transitions disabled through a painted frame, including consecutive
+  // resize notifications from the native fullscreen animation.
+  resizeTransitionFrame = requestAnimationFrame(() => {
+    resizeTransitionFrame = requestAnimationFrame(() => {
+      isResizingContainer.value = false;
+    });
+  });
+}, { flush: 'sync' });
+
+// Image loading retains its existing deferred layout update.
 let debounceTimeout: NodeJS.Timeout | null = null;
-watch(() => [containerSize.value, imageSize.value], () => {
+watch(() => imageSize.value, () => {
   if (debounceTimeout) clearTimeout(debounceTimeout);
   debounceTimeout = setTimeout(() => {
     if (isZoomFit.value) {

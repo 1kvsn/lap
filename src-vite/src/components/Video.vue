@@ -202,7 +202,7 @@ const playerOptions = computed(() => ({
   controlBar: {
     pictureInPictureToggle: false,
     playbackRateMenuButton: false,
-    fullscreenToggle: true,
+    fullscreenToggle: false,
     audioTrackButton: false,
     volumePanel: { inline: true },
   },
