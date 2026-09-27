@@ -1284,9 +1284,6 @@
     "grid": {
       "title": "Układ",
       "section_grid": "Siatka",
-      "dbl_click_thumbnail": "Dwuklik miniatury",
-      "dbl_click_quick_preview": "Szybki podgląd",
-      "dbl_click_new_window": "Otwórz w nowym oknie",
       "style": "Styl",
       "style_options": [
         "Widok kart",

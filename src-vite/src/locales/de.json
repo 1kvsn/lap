@@ -1284,9 +1284,6 @@
     "grid": {
       "title": "Layout",
       "section_grid": "Raster",
-      "dbl_click_thumbnail": "Miniaturansicht doppelklicken",
-      "dbl_click_quick_preview": "Schnellvorschau",
-      "dbl_click_new_window": "In neuem Fenster öffnen",
       "style": "Stil",
       "style_options": [
         "Kartenansicht",

@@ -1284,9 +1284,6 @@
     "grid": {
       "title": "Diseño",
       "section_grid": "Cuadrícula",
-      "dbl_click_thumbnail": "Doble clic en la miniatura",
-      "dbl_click_quick_preview": "Vista rápida",
-      "dbl_click_new_window": "Abrir en una ventana nueva",
       "style": "Estilo",
       "style_options": [
         "Vista de tarjeta",

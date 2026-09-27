@@ -1284,9 +1284,6 @@
     "grid": {
       "title": "布局",
       "section_grid": "网格",
-      "dbl_click_thumbnail": "双击缩略图",
-      "dbl_click_quick_preview": "快速预览",
-      "dbl_click_new_window": "在新窗口中打开",
       "style": "样式",
       "style_options": [
         "卡片视图",

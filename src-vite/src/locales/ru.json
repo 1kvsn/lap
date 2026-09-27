@@ -1284,9 +1284,6 @@
     "grid": {
       "title": "Компоновка",
       "section_grid": "Сетка",
-      "dbl_click_thumbnail": "Двойной щелчок по миниатюре",
-      "dbl_click_quick_preview": "Быстрый просмотр",
-      "dbl_click_new_window": "Открыть в новом окне",
       "style": "Стиль",
       "style_options": [
         "Карточки",
