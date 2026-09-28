@@ -21,6 +21,7 @@ mod t_cmds;
 mod t_common;
 mod t_config;
 mod t_dedup;
+mod t_embedded_jpeg;
 mod t_face;
 mod t_heif;
 mod t_http;
