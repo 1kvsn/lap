@@ -3865,6 +3865,8 @@ async function handleTimelineSelectItem(index: number) {
 
 function clickRename() {
   if (selectMode.value) return;
+  // Skip while an inline input is active (e.g. FileInfo rename, where Enter confirms the edit).
+  if (uiStore.inputStack.length > 0) return;
   renamingFileName.value = extractFileName(fileList.value[selectedItemIndex.value].name);
   showRenameMsgbox.value = true;
 }
@@ -4518,8 +4520,12 @@ function isContentInteractionActive() {
   return isContentHovered.value && !uiStore.mapActive;
 }
 
-function activateContentPane() {
+function activateContentPane(event?: Event) {
   uiStore.setActivePane('content');
+  // Don't steal focus from an editable field: this mousedown.capture runs before the field's own
+  // handlers, so focusing contentRoot would blur it (e.g. abort FileInfo's rename on a mere click).
+  const target = event?.target as HTMLElement | null;
+  if (target?.closest?.('input, textarea, [contenteditable="true"]')) return;
   contentRootRef.value?.focus({ preventScroll: true });
 }
 
