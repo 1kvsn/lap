@@ -103,7 +103,10 @@ for appimage in "${APPIMAGES[@]}"; do
 
   # Apply the default before the application starts, only for AppImages.
   # ${VAR-default} preserves explicit values (including empty), allowing users
-  # to select X11. Require one assignment so upstream hook changes get reviewed.
+  # to select X11. Upstream linuxdeploy-plugin-gtk now ships the assignment
+  # commented out ("# export GDK_BACKEND=x11 # ... Wayland"), so also match an
+  # optional leading '#' and replace the whole line with our active default.
+  # Require exactly one match so further upstream hook changes get reviewed.
   gtk_hook="$image_work_dir/squashfs-root/apprun-hooks/linuxdeploy-plugin-gtk.sh"
   if [ ! -f "$gtk_hook" ]; then
     echo "GTK launch hook not found in ${image_name}" >&2
@@ -112,7 +115,7 @@ for appimage in "${APPIMAGES[@]}"; do
   echo "==> Configuring AppImage GTK backend default in ${image_name}"
   LC_ALL=C perl -0777 -i -pe '
     BEGIN { $replacement = q{export GDK_BACKEND="${GDK_BACKEND-wayland,x11}"}; }
-    $count = s/^[ \t]*export[ \t]+GDK_BACKEND=[^\r\n]*/$replacement/gm;
+    $count = s/^[ \t]*#?[ \t]*export[ \t]+GDK_BACKEND=[^\r\n]*/$replacement/gm;
     die "Expected exactly one GDK_BACKEND assignment in GTK hook; review upstream changes\n"
       unless $count == 1;
   ' "$gtk_hook"
