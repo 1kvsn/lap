@@ -87,14 +87,19 @@ for appimage in "${APPIMAGES[@]}"; do
   )
 
   # The bundled Wayland client caused EGL initialization failures with host
-  # graphics libraries (#270/#271). Locate its SONAME across build layouts.
-  wayland_client="$(find "$image_work_dir/squashfs-root" -name 'libwayland-client.so.0' -print -quit)"
-  if [ -z "$wayland_client" ]; then
-    echo "Bundled libwayland-client.so.0 not found in ${image_name}" >&2
-    exit 1
+  # graphics libraries (#270/#271). Remove every copy/symlink across build
+  # layouts. Its absence is fine — there is simply nothing to strip — so log and
+  # continue with the rest of the post-processing instead of failing the build.
+  wayland_clients=()
+  while IFS= read -r -d '' wayland_client; do
+    wayland_clients+=("$wayland_client")
+  done < <(find "$image_work_dir/squashfs-root" -name 'libwayland-client.so*' -print0)
+  if [ "${#wayland_clients[@]}" -gt 0 ]; then
+    echo "==> Removing bundled libwayland-client from ${image_name}"
+    rm -f "${wayland_clients[@]}"
+  else
+    echo "No bundled libwayland-client found in ${image_name}; nothing to remove" >&2
   fi
-  echo "==> Removing bundled libwayland-client.so.0 from ${image_name}"
-  rm -f "$wayland_client"
 
   # Apply the default before the application starts, only for AppImages.
   # ${VAR-default} preserves explicit values (including empty), allowing users

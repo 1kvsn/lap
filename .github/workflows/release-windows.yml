@@ -31,8 +31,8 @@ jobs:
         run: |
           set -euo pipefail
           ALL='[
-            {"arch":"x64","runner":"windows-2022","target":"x86_64-pc-windows-msvc","msvc_arch":"x64","platform_key":"windows-x86_64","artifact_name":"windows-x86_64","msi_glob":"*_x64_*.msi"},
-            {"arch":"arm64","runner":"windows-11-arm","target":"aarch64-pc-windows-msvc","msvc_arch":"arm64","platform_key":"windows-aarch64","artifact_name":"windows-aarch64","msi_glob":"*_arm64_*.msi"}
+            {"arch":"x64","runner":"windows-2022","target":"x86_64-pc-windows-msvc","msvc_arch":"x64","msvc_vsversion":"2022","platform_key":"windows-x86_64","artifact_name":"windows-x86_64","msi_glob":"*_x64_*.msi"},
+            {"arch":"arm64","runner":"windows-11-arm","target":"aarch64-pc-windows-msvc","msvc_arch":"arm64","msvc_vsversion":"","platform_key":"windows-aarch64","artifact_name":"windows-aarch64","msi_glob":"*_arm64_*.msi"}
           ]'
 
           INPUT="${{ github.event.inputs.build_target }}"
@@ -133,7 +133,7 @@ jobs:
         uses: ilammy/msvc-dev-cmd@v1
         with:
           arch: ${{ matrix.msvc_arch }}
-          vsversion: "2022"
+          vsversion: ${{ matrix.msvc_vsversion }}
 
       - name: Remove ranlib from PATH
         shell: pwsh

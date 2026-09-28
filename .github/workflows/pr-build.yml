@@ -204,10 +204,14 @@ jobs:
             runner: windows-2022
             target: x86_64-pc-windows-msvc
             msvc_arch: x64
+            msvc_vsversion: "2022"
           - arch: arm64
             runner: windows-11-arm
             target: aarch64-pc-windows-msvc
             msvc_arch: arm64
+            # The windows-11-arm image now ships VS 2026; leave vsversion empty so
+            # vswhere auto-discovers whatever MSVC the runner provides.
+            msvc_vsversion: ""
 
     steps:
       - name: Checkout repository
@@ -286,7 +290,7 @@ jobs:
         uses: ilammy/msvc-dev-cmd@v1
         with:
           arch: ${{ matrix.msvc_arch }}
-          vsversion: "2022"
+          vsversion: ${{ matrix.msvc_vsversion }}
 
       - name: Remove ranlib from PATH
         shell: pwsh
