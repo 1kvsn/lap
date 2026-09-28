@@ -187,6 +187,8 @@ cd src-vite && pnpm install && cd ..
 cargo tauri dev
 ```
 
+发行版软件包可以链接系统 libheif（1.17 或更新版本），而不使用内置的 libheif 和 libde265。构建时设置 `LAP_SYSTEM_LIBHEIF=1`。这样就无需 `third_party/libheif` 和 `third_party/libde265` 这两个子模块。HEVC 解码取决于系统 libheif 的编解码插件。
+
 ## 支持格式
 
 Lap 支持 60+ 种照片、RAW 和视频格式。

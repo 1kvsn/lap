@@ -175,6 +175,8 @@ cd src-vite && pnpm install && cd ..
 cargo tauri dev
 ```
 
+배포 패키지는 번들된 libheif와 libde265 대신 시스템 libheif(1.17 이상)에 링크할 수 있습니다. 빌드 시 `LAP_SYSTEM_LIBHEIF=1`을(를) 설정하세요. 그러면 `third_party/libheif` 및 `third_party/libde265` 하위 모듈이 필요하지 않습니다. HEVC 디코딩은 시스템 libheif의 코덱 플러그인에 따라 달라집니다.
+
 ## 지원 포맷
 
 Lap은 60개 이상의 사진, RAW, 비디오 포맷을 지원합니다.

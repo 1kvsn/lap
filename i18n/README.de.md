@@ -175,6 +175,8 @@ cd src-vite && pnpm install && cd ..
 cargo tauri dev
 ```
 
+Distributionspakete können das System-libheif (1.17 oder neuer) anstelle des gebündelten libheif und libde265 verwenden. Setze `LAP_SYSTEM_LIBHEIF=1` für den Build. Die Submodule `third_party/libheif` und `third_party/libde265` werden dann nicht benötigt. Die HEVC-Dekodierung hängt von den Codec-Plugins des System-libheif ab.
+
 ## Unterstützte Formate
 
 Lap unterstützt über 60 Foto-, RAW- und Videoformate.

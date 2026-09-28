@@ -175,6 +175,8 @@ cd src-vite && pnpm install && cd ..
 cargo tauri dev
 ```
 
+配布パッケージでは、同梱の libheif と libde265 の代わりに、システムの libheif（1.17 以降）にリンクできます。ビルド時に `LAP_SYSTEM_LIBHEIF=1` を設定してください。この場合、サブモジュール `third_party/libheif` と `third_party/libde265` は不要です。HEVC のデコードは、システム libheif のコーデックプラグインに依存します。
+
 ## 対応形式
 
 Lapは60以上の写真、RAW、動画形式に対応しています。

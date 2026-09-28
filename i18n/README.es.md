@@ -175,6 +175,8 @@ cd src-vite && pnpm install && cd ..
 cargo tauri dev
 ```
 
+Los paquetes de distribución pueden enlazar con el libheif del sistema (1.17 o posterior) en lugar del libheif y libde265 incluidos. Establece `LAP_SYSTEM_LIBHEIF=1` para la compilación. Entonces no se necesitan los submódulos `third_party/libheif` y `third_party/libde265`. La decodificación HEVC depende de los complementos de códec del libheif del sistema.
+
 ## Formatos compatibles
 
 Lap admite más de 60 formatos de foto, RAW y vídeo.
