@@ -1,7 +1,7 @@
 <template>
   <Teleport to="body" :disabled="!previewFullScreen">
   <div 
-    :class="['w-full flex flex-col items-center justify-center', previewFullScreen ? 'fixed inset-0 z-[200] bg-base-200' : 'relative', toolbarOnly ? '' : 'h-full group']"
+    :class="['w-full flex flex-col items-center justify-center', previewFullScreen ? 'fixed inset-0 z-[200]' : 'relative', isFullScreen ? 'bg-base-200' : '', toolbarOnly ? '' : 'h-full group']"
     :style="toolbarOnly ? undefined : viewBackgroundStyle"
     @mousemove="handleMouseMove"
     @mouseleave="handleMouseLeave"
@@ -824,7 +824,10 @@ const viewBackgroundSwatches: CSSProperties[] = [
   ...viewBackgroundColors.slice(1).map(backgroundColor => ({ backgroundColor })),
 ];
 const viewBackgroundStyle = computed(() => {
-  return { backgroundColor: viewBackgroundColors[Number(config.settings.viewBackground ?? 0)] ?? viewBackgroundColors[0] };
+  const backgroundColor = viewBackgroundColors[Number(config.settings.viewBackground ?? 0)] ?? viewBackgroundColors[0];
+  return isFullScreen.value && backgroundColor === 'transparent'
+    ? undefined
+    : { backgroundColor };
 });
 const viewBackgroundMenuItems = computed(() => {
   const labels = localeMsg.value.settings.image_view.view_background_options || [];

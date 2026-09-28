@@ -953,6 +953,8 @@ watch(() => props.isActive, (isActive) => {
   player.volume(config.video.volume);
   player.muted(config.video.muted);
   if (props.playOnActivate && !isPlaying.value) {
+    // Live/Motion Photo hover starts a new preview, rather than resuming it.
+    player.currentTime(0);
     player.play().catch(() => {});
   }
 });
