@@ -1070,6 +1070,9 @@ type ImageViewerSession =
 // A comparison window owns a snapshot of the selected files. Background content
 // refreshes must not replace that source with the live file list.
 const imageViewerSession = ref<ImageViewerSession>({ mode: 'normal' });
+// True while the separate image viewer window exists, so selection changes can
+// push updates without an async window lookup when no viewer is open.
+const isImageViewerWindowOpen = ref(false);
 
 function removeDeletedFilesFromImageViewerSession(fileIds: number[]) {
   const session = imageViewerSession.value;
@@ -5285,6 +5288,13 @@ onMounted( async() => {
           if (!isRealFileItem(fileList.value[requestIndex])) {
             await fetchDataRange(requestIndex, requestIndex + 2);
           }
+          // Reflect the viewer's navigation in the main-window selection so the
+          // grid highlight/scroll follows the image being viewed.
+          if (pane === 'left' && selectedItemIndex.value !== requestIndex) {
+            suppressImageViewerSync = true;
+            selectedItemIndex.value = requestIndex;
+            void nextTick(() => { suppressImageViewerSync = false; });
+          }
         }
         const viewerFiles = session.mode === 'compare' ? session.files : fileList.value;
         const file = viewerFiles[requestIndex];
@@ -5807,12 +5817,19 @@ watch(
 );
 
 // watch for selected item (not in select mode)
+// Set while applying an index change that originated from the image viewer, so
+// the push below does not echo the same index back to the viewer.
+let suppressImageViewerSync = false;
 watch(() => selectedItemIndex.value, (newIndex, oldIndex) => {
   if(oldIndex >= 0 && oldIndex !== newIndex && fileList.value[oldIndex]?.rotate >= 360) {
     fileList.value[oldIndex].rotate %= 360;
   }
   void setLastSelectedItemIndex(Number(newIndex ?? -1));
   updateSelectedImage(newIndex);
+  // Keep an open image viewer in sync with the main-window selection.
+  if (!suppressImageViewerSync) {
+    void syncSelectionToImageViewer(newIndex);
+  }
 });
 
 // watch for show preview or layout change
@@ -10118,11 +10135,13 @@ async function openImageViewer(
       });
 
       imageWindow.once('tauri://created', () => {
+        isImageViewerWindowOpen.value = true;
         console.log('ImageViewer window created');
         videoRef.value?.pause();  // pause video playing in preview pane
       });
 
       imageWindow.once('tauri://close-requested', () => {
+        isImageViewerWindowOpen.value = false;
         imageWindow?.close();
       });
 
@@ -10131,6 +10150,7 @@ async function openImageViewer(
       });
     }
   } else {    // update the existing window
+    isImageViewerWindowOpen.value = true;
     await imageWindow.emit('update-img', { 
       fileId: leftFileId, 
       fileIndex: leftIndex,   // selected file index
@@ -10176,6 +10196,29 @@ async function openImageViewer(
     }
     videoRef.value?.pause();  // pause video playing in preview pane
   }
+}
+
+// Push the main-window selection to an open (normal-mode) image viewer, reusing
+// the existing update-img channel. Gated on isImageViewerWindowOpen so a
+// selection change does no async window lookup when no viewer is open, and it
+// re-checks the selection after the await so the latest index wins when the
+// user navigates rapidly (out-of-order getByLabel resolutions cannot regress
+// the viewer to a stale image).
+async function syncSelectionToImageViewer(index: number) {
+  if (!isImageViewerWindowOpen.value) return;
+  if (imageViewerSession.value.mode !== 'normal') return;
+  if (!isRealFileItem(fileList.value[index])) return;
+  const imageWindow = await WebviewWindow.getByLabel('imageviewer');
+  if (!imageWindow || selectedItemIndex.value !== index) return;
+  const file = fileList.value[index];
+  const next = fileList.value[index + 1];
+  imageWindow.emit('update-img', {
+    fileId: file.id,
+    fileIndex: index,
+    fileCount: fileList.value.length,
+    nextFilePath: next && !next.isPlaceholder && next.file_type === 1 ? next.file_path : '',
+    pane: 'left',
+  });
 }
 
 async function openImageEditor(index: number) {
