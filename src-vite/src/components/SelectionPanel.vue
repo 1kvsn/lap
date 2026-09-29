@@ -188,7 +188,7 @@
             :key="item.label"
             :icon="item.icon"
             :disabled="selectedCount === 0 || Boolean(item.disabled)"
-            @click="$emit('moreAction', item.action)"
+            @click="onMoreActionClick(item, $event)"
           >
             {{ item.label }}
           </PanelActionButton>
@@ -253,7 +253,7 @@ const props = defineProps({
   },
 });
 
-defineEmits([
+const emit = defineEmits([
   'close',
   'selectAll',
   'selectNone',
@@ -273,6 +273,7 @@ defineEmits([
   'removeFromCollection',
   'unselectFile',
   'moreAction',
+  'moreActionMenu',
 ]);
 
 const { locale, messages, t } = useI18n();
@@ -353,7 +354,15 @@ const rotateDisplayLabel = computed(() => {
 });
 
 const visibleMoreActions = computed(() =>
-  props.moreActions.filter((item: any) => item?.label && item?.action && !item.hidden)
+  props.moreActions.filter((item: any) => item?.label && !item.hidden && (item.action || item.children?.length))
 );
+
+// Items with a direct action fire immediately; submenu parents (e.g. "Open in
+// external app...") hand the click to the parent so it can pop the same
+// ContextMenu submenu the right-click menu uses.
+function onMoreActionClick(item: any, event: MouseEvent) {
+  if (item?.children?.length) emit('moreActionMenu', item, event);
+  else emit('moreAction', item.action);
+}
 
 </script>

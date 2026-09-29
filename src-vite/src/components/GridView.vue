@@ -90,7 +90,6 @@
           @dblclicked="(modifiers) => $emit('item-dblclicked', getFileIndex(item, index), modifiers)"
           @select-toggled="(shiftKey) => $emit('item-select-toggled', getFileIndex(item, index), shiftKey)"
           @action="(actionName) => $emit('item-action', { action: actionName, index: getFileIndex(item, index) })"
-          @select-contextmenu="(pos) => $emit('item-select-contextmenu', { ...pos, index: getFileIndex(item, index) })"
         />
         <div v-else class="w-full h-full bg-base-200/70"></div>
       </div>
@@ -189,7 +188,6 @@ const emit = defineEmits([
   'item-dblclicked',
   'item-select-toggled',
   'item-action',
-  'item-select-contextmenu',
   'date-group-select',
   'group-select-toggled',
   'request-scroll',

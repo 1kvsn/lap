@@ -87,7 +87,9 @@ export const useFileMenuItems = (
         disabled: kind !== 'image' || selectionCount < 2,
         action: createAction('compare-selected-images'),
       },
-      externalAppMenu(externalAppKind),
+      // A mixed image+video selection has no single external-app target, so
+      // disable the entry rather than showing an empty app list.
+      { ...externalAppMenu(externalAppKind), disabled: kind === 'mixed' },
       {
         label: localeMsg.value.menu.file.refresh_file_info,
         icon: markRaw(IconRefresh),

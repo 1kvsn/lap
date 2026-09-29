@@ -239,7 +239,6 @@
                 @item-dblclicked="handleItemDblClicked"
                 @item-select-toggled="handleItemSelectToggled"
                 @item-action="handleItemAction"
-                @item-select-contextmenu="handleSelectionContextMenu"
                 @date-group-select="handleDateGroupSelect"
                 @group-select-toggled="handleGroupSelectToggled"
                 @visible-range-update="handleVisibleRangeUpdate"
@@ -481,6 +480,7 @@
             @rotate-all="clickRotate"
             @unselect-file="unselectFileFromSelection"
             @more-action="action => action()"
+            @more-action-menu="handleMoreActionMenu"
           />
           <FileInfo
             v-else-if="rightPanelContent === 'info'"
@@ -704,15 +704,16 @@
     </div>
   </Teleport>
 
-  <!-- Single shared context menu for multi-select right-click. It acts on the
-       whole selection, so one instance lives here rather than one per thumbnail.
-       The trigger is empty; it's opened at cursor coordinates by
-       handleSelectionContextMenu, and its popup teleports to <body>. -->
+  <!-- Pops a More-actions submenu parent's children (e.g. "Open in external
+       app...") at the clicked toolbar button, reusing ContextMenu's submenu
+       rendering and the same multi-select menu actions. The trigger is empty;
+       it's opened at button coordinates by handleMoreActionMenu, and its popup
+       teleports to <body>. -->
   <div class="hidden">
     <ContextMenu
-      ref="selectionMenuRef"
+      ref="moreActionMenuRef"
       :iconMenu="null"
-      :menuItems="selectionMenuItems"
+      :menuItems="moreActionMenuItems"
     >
       <template #trigger><span></span></template>
     </ContextMenu>
@@ -1115,14 +1116,13 @@ async function finishSelectedFileRefresh() {
   await updateContent(true, true);
 }
 
-const selectionMenuRef = ref<InstanceType<typeof ContextMenu> | null>(null);
-const selectionMenuIndex = ref(-1);
 const selectionMenuItems = useFileMenuItems(
   ref<any>(null),
   localeMsg,
   isMac,
   t,
-  (action: string) => handleItemAction({ action, index: selectionMenuIndex.value }),
+  // Selection-menu actions act on the whole selection, never a single index.
+  (action: string) => handleItemAction({ action, index: -1 }),
   {
     selectMode: ref(true),
     selectionMediaKind,
@@ -1130,24 +1130,20 @@ const selectionMenuItems = useFileMenuItems(
   },
 );
 
-// Opens the shared selection menu for a right-clicked thumbnail. Mirrors the
-// per-thumbnail behavior: when a selection already exists, only open from an
-// item that's part of it; when nothing is selected, select the clicked item
-// first so the menu has a target, then wait a tick for that selection to flow
-// into the menu before opening.
-async function handleSelectionContextMenu({ x, y, index, isSelected }: { x: number; y: number; index: number; isSelected: boolean }) {
-  if (!selectMode.value) return;
-  if (!isSelected) {
-    if (selectedCount.value > 0) return;
-    handleItemClicked(index, false);
-    await nextTick();
-  }
-  selectionMenuIndex.value = index;
-  // Skip when there's no visible entry (empty/non-media selection), otherwise the
-  // menu would render as an empty box.
-  const hasVisibleItem = (selectionMenuItems.value ?? []).some((m: any) => !m.hidden);
-  if (!hasVisibleItem) return;
-  selectionMenuRef.value?.open?.(x, y);
+const moreActionMenuRef = ref<InstanceType<typeof ContextMenu> | null>(null);
+const moreActionMenuItems = ref<any[]>([]);
+// Opens a More-actions submenu parent's children (e.g. "Open in external
+// app...") at the clicked toolbar button, reusing ContextMenu's submenu
+// rendering and the same multi-select menu actions.
+function handleMoreActionMenu(item: any, event: MouseEvent) {
+  const children = item?.children;
+  if (!Array.isArray(children) || children.length === 0) return;
+  moreActionMenuItems.value = children;
+  const rect = (event.currentTarget as HTMLElement | null)?.getBoundingClientRect();
+  const x = rect ? rect.left : event.clientX;
+  const y = rect ? rect.bottom : event.clientY;
+  // Let the bound menuItems prop flush to the child before it measures/opens.
+  void nextTick(() => moreActionMenuRef.value?.open?.(x, y));
 }
 
 const groupedModeActive = ref(false);

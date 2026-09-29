@@ -184,8 +184,8 @@
         </label>
       </div>
 
-      <!-- context menu (non-select only; in select mode a single shared menu is
-           owned by the parent and opened via the select-contextmenu event) -->
+      <!-- context menu (non-select only; in select mode all actions live in the
+           always-visible selection panel, so no per-thumbnail menu is shown) -->
       <div v-if="!selectMode" class="absolute right-0.5 top-0.5">
         <ContextMenu
           ref="contextMenuRef"
@@ -286,8 +286,7 @@ const emit = defineEmits([
     'clicked',
     'dblclicked',
     'select-toggled',
-    'action',
-    'select-contextmenu'
+    'action'
 ]);
 
 const isTransitionDisabled = ref(false);
@@ -512,15 +511,9 @@ function handleDoubleClick(event: MouseEvent) {
 function handleContextMenu(event: MouseEvent) {
   event.preventDefault();
   event.stopPropagation();
-  // In multi-select mode a single shared menu (owned by the parent) acts on the
-  // whole selection; just forward the cursor position and let the parent decide
-  // whether and where to open it.
-  if (props.selectMode) {
-    // Pass this thumbnail's own selection state up; the parent shouldn't re-derive
-    // it from an index (which can disagree under grouping/virtualization).
-    emit('select-contextmenu', { x: event.clientX, y: event.clientY, isSelected: props.isSelected });
-    return;
-  }
+  // Multi-select actions live in the selection panel (always visible in select
+  // mode) and are left-click only, so no context menu is shown here.
+  if (props.selectMode) return;
   if (!props.isSelected) {
     emit('clicked', false);
   }
