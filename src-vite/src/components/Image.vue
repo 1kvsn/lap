@@ -361,8 +361,11 @@ const transitionName = computed(() => {
 
 const getImageStyle = (index: number) => ({
   position: 'absolute',
-  minWidth: `${imageSize.value[index].width}px`,
-  minHeight: `${imageSize.value[index].height}px`,
+  // RAW placeholders and full previews can have different intrinsic sizes.
+  // Use the same layout box as the centering, zoom and rotation calculations.
+  width: `${imageSize.value[index].width}px`,
+  height: `${imageSize.value[index].height}px`,
+  maxWidth: 'none', // Override Tailwind's img max-width: 100%; zoom handles fitting.
   transform: `translate3d(${position.value[index].x}px, ${position.value[index].y}px, 0)
               scale(${scale.value[index]})
               rotate(${imageRotate.value[index]}deg)`,
