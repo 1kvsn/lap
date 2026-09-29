@@ -121,7 +121,8 @@
             </div>
             <div
               v-if="databaseCorrupted === false && showBottomCollectionTray && config.collectionTray.expanded"
-              class="h-1 -mx-1 shrink-0 cursor-row-resize transition-colors hover:bg-primary"
+              class="h-1 -mx-1 shrink-0 cursor-row-resize splitter-indicator splitter-horizontal"
+              :class="{ 'splitter-dragging': isDraggingCollectionSplitter }"
               @mousedown="startDraggingCollectionSplitter"
             ></div>
             <CollectionTray
@@ -140,10 +141,10 @@
       
       <!-- splitter -->
       <div v-if="!uiStore.isFullScreen"
-        class="w-1 transition-colors shrink-0"
+        class="w-1 shrink-0"
         :class="{
-          'hover:bg-primary cursor-col-resize': leftPanelLayoutExpanded,
-          'bg-primary': leftPanelLayoutExpanded && isDraggingSplitter,
+          'cursor-col-resize splitter-indicator splitter-vertical': leftPanelLayoutExpanded,
+          'splitter-dragging': leftPanelLayoutExpanded && isDraggingSplitter,
         }" 
         @mousedown="startDraggingSplitter"
         @mouseup="stopDraggingSplitter"

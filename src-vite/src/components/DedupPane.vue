@@ -130,7 +130,7 @@
             class="-mx-2 z-10 flex h-1 border-b border-base-content/5 shrink-0 touch-none cursor-row-resize items-center select-none"
             @pointerdown.prevent="startDraggingDuplicateSplitter"
           >
-            <div class="h-1 w-full transition-colors hover:bg-primary" :class="{ 'bg-primary': isDraggingDuplicateSplitter }"></div>
+            <div class="h-1 w-full splitter-indicator splitter-horizontal" :class="{ 'splitter-dragging': isDraggingDuplicateSplitter }"></div>
           </div>
           <div v-if="activeSimilarGroup" class="min-h-0 flex-1 overflow-y-auto px-1 py-3 space-y-3">
             <div class="flex items-center gap-2">
@@ -357,7 +357,7 @@
           class="-mx-2 z-10 flex h-1 border-b border-base-content/5 shrink-0 touch-none cursor-row-resize items-center select-none"
           @pointerdown.prevent="startDraggingDuplicateSplitter"
         >
-          <div class="h-1 w-full transition-colors hover:bg-primary" :class="{ 'bg-primary': isDraggingDuplicateSplitter }"></div>
+          <div class="h-1 w-full splitter-indicator splitter-horizontal" :class="{ 'splitter-dragging': isDraggingDuplicateSplitter }"></div>
         </div>
         <div v-if="activeGroup" class="min-h-0 flex-1 overflow-y-auto px-1 py-3 space-y-3">
           <div class="flex items-center gap-2">

@@ -410,12 +410,11 @@
 
       <!-- info panel splitter -->
       <div v-if="rightPanelLayoutVisible"
-        class="w-1 shrink-0 transition-colors mt-12"
+        class="w-1 shrink-0 mt-12 cursor-col-resize splitter-indicator splitter-vertical"
         :class="{
           'mb-8': config.settings.showStatusBar,
           'mb-1': !config.settings.showStatusBar,
-          'hover:bg-primary cursor-col-resize': rightPanelLayoutVisible,
-          'bg-primary': rightPanelLayoutVisible && isDraggingInfoPanel,
+          'splitter-dragging': isDraggingInfoPanel,
         }" 
         @mousedown="startDraggingInfoPanelSplitter"
       ></div>
