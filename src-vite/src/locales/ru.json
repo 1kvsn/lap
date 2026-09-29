@@ -950,6 +950,15 @@
     "select_file": {
       "error": "Ошибка выбора файла."
     },
+    "file_refresh": {
+      "status": "Состояние обновления",
+      "running": "Обновление…",
+      "cancelling": "Отмена…",
+      "cancelled": "Отменено",
+      "complete": "Завершено",
+      "succeeded": "Обновлено: {count}",
+      "failed": "Ошибок: {count}"
+    },
     "image_editor": {
       "title": "Редактировать",
       "tab_edit": "Общее",

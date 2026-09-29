@@ -950,6 +950,15 @@
     "select_file": {
       "error": "Failed to select file."
     },
+    "file_refresh": {
+      "status": "Refresh status",
+      "running": "Refreshing…",
+      "cancelling": "Cancelling…",
+      "cancelled": "Cancelled",
+      "complete": "Complete",
+      "succeeded": "Updated: {count}",
+      "failed": "Failed: {count}"
+    },
     "image_editor": {
       "title": "Edit",
       "tab_edit": "General",

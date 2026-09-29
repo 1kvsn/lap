@@ -950,6 +950,15 @@
     "select_file": {
       "error": "选择文件失败。"
     },
+    "file_refresh": {
+      "status": "刷新状态",
+      "running": "正在刷新…",
+      "cancelling": "正在取消…",
+      "cancelled": "已取消",
+      "complete": "已完成",
+      "succeeded": "已更新：{count}",
+      "failed": "失败：{count}"
+    },
     "image_editor": {
       "title": "编辑",
       "tab_edit": "通用",

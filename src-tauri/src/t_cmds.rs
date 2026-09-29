@@ -32,6 +32,10 @@ use std::process::Command;
 use std::sync::{Arc, Mutex};
 use tauri::{AppHandle, Emitter, State};
 
+// Serialize a scoped metadata refresh with library switching. A refresh may
+// open several connections, all of which must resolve to the same library.
+static FILE_REFRESH_LIBRARY_LOCK: Mutex<()> = Mutex::new(());
+
 // cancellation token for indexing
 pub struct IndexCancellation(pub Arc<Mutex<HashMap<i64, bool>>>);
 pub struct ImportCancellation(pub Arc<Mutex<ImportState>>);
@@ -393,6 +397,7 @@ pub async fn switch_library(app_handle: tauri::AppHandle, id: String) -> Result<
     // create_db's returned error itself rather than re-reading the process-global flag afterwards
     // (which a concurrent switch could resolve against a different library).
     let corrupted = tauri::async_runtime::spawn_blocking(move || -> Result<bool, String> {
+        let _guard = FILE_REFRESH_LIBRARY_LOCK.lock().map_err(|e| e.to_string())?;
         t_config::switch_library(&id)?;
         t_utils::clear_album_accessibility();
         t_sqlite::clear_conn_pool();
@@ -2785,6 +2790,31 @@ pub fn update_file_info(file_id: i64, file_path: &str) -> Result<Option<AFile>, 
     let now = chrono::Utc::now().timestamp_millis();
     AFile::update_file_info(file_id, file_path, now)
         .map_err(|e| format!("Error while updating file info: {}", e))
+}
+
+/// Force a selected file refresh without accepting a stale frontend file path.
+#[tauri::command]
+pub async fn refresh_selected_file_info(library_id: String, file_id: i64) -> Result<Option<AFile>, String> {
+    tauri::async_runtime::spawn_blocking(move || {
+        let _guard = FILE_REFRESH_LIBRARY_LOCK.lock().map_err(|e| e.to_string())?;
+        if t_config::load_app_config()?.current_library_id != library_id {
+            return Err("Library changed".to_string());
+        }
+        let old = AFile::get_file_info(file_id)?.ok_or("File not found")?;
+        let path = old.file_path.as_deref().ok_or("File path missing")?;
+        let updated = AFile::update_file_info(file_id, path, chrono::Utc::now().timestamp_millis())?;
+        if let Some(ref file) = updated {
+            let content_changed = old.modified_at != file.modified_at || old.size != file.size;
+            if content_changed || old.width != file.width || old.height != file.height
+                || old.e_orientation != file.e_orientation {
+                AThumb::delete(file_id)?;
+            }
+            if content_changed {
+                AFile::update_column(file_id, "embeds", &Option::<Vec<u8>>::None)?;
+            }
+        }
+        AFile::get_file_info(file_id)
+    }).await.map_err(|e| format!("File refresh task failed: {e}"))?
 }
 
 /// add or refresh a file in db and return the indexed file info

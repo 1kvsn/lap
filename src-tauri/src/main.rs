@@ -350,6 +350,7 @@ async fn main() {
             t_cmds::get_file_thumbs,
             t_cmds::get_file_info,
             t_cmds::update_file_info,
+            t_cmds::refresh_selected_file_info,
             t_cmds::prepare_motion_photo_video,
             t_cmds::add_file_to_db,
             t_cmds::check_file_exists,

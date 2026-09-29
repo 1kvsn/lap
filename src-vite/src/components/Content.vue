@@ -541,6 +541,14 @@
     @reset="errorMessage = ''"
   />
 
+  <RefreshFileInfoDialog
+    v-if="fileRefreshSelection"
+    :file-ids="fileRefreshSelection.ids"
+    :library-id="fileRefreshSelection.libraryId"
+    :finish-refresh="finishSelectedFileRefresh"
+    @close="fileRefreshSelection = null"
+  />
+
   <!-- move to -->
   <MoveTo
     v-if="showMoveTo"
@@ -759,6 +767,8 @@ import { useFileMenuItems } from '@/common/fileMenu';
 import Welcome from '@/components/Welcome.vue';
 import MediaViewer from '@/components/MediaViewer.vue';
 import MessageBox from '@/components/MessageBox.vue';
+import RefreshFileInfoDialog from '@/components/RefreshFileInfoDialog.vue';
+import { fileInfoRevision } from '@/common/fileInfoRefresh';
 import IndexRecoveryDialog from '@/components/IndexRecoveryDialog.vue';
 import MoveTo from '@/components/MoveTo.vue';
 import TButton from '@/components/TButton.vue';
@@ -958,6 +968,7 @@ const isContentHovered = ref(false);
 
 // file list
 const fileList = ref<any[]>([]);
+const contentReady = ref(false);  // true after current view's content has loaded (empty or not), reset on navigation
 const groupedRows = ref<any[]>([]);
 const totalFileCount = ref(0);    // total files' count
 const totalRowCount = ref(0);     // total render rows' count (group headers + files)
@@ -992,6 +1003,7 @@ type SelectionRestoreState = {
   selectedSize: number;
   viewportFileId: number;
   fallbackFileId: number;
+  refreshSizes?: boolean;
 };
 let pendingSelectionRestore: SelectionRestoreState | null = null;
 let isRestoringSelection = false;
@@ -1087,6 +1099,22 @@ function removeDeletedFilesFromImageViewerSession(fileIds: number[]) {
   return files.length;
 }
 
+const fileRefreshSelection = ref<{ ids: number[]; libraryId: string } | null>(null);
+function startSelectedFileRefresh() {
+  if (fileRefreshSelection.value || selectedFileIds.size === 0) return;
+  fileRefreshSelection.value = { ids: Array.from(selectedFileIds), libraryId: libConfig._libraryId };
+}
+async function finishSelectedFileRefresh() {
+  const selection = fileRefreshSelection.value;
+  if (!selection || selection.libraryId !== libConfig._libraryId) return;
+  for (const id of selection.ids) clearCachedThumbnailDataUrl(id, config.settings.thumbnailSize);
+  fileInfoRevision.value++;
+  // updateContent dispatches list queries without awaiting their completion.
+  // Restore selection from the contentReady watcher, never from a transient
+  // empty list while those queries are still loading.
+  await updateContent(true, true);
+}
+
 const selectionMenuRef = ref<InstanceType<typeof ContextMenu> | null>(null);
 const selectionMenuIndex = ref(-1);
 const selectionMenuItems = useFileMenuItems(
@@ -1167,6 +1195,7 @@ function captureSelectionForFileListRefresh() {
   const activeFileId = Number(fileList.value[selectedItemIndex.value]?.id || 0);
   pendingSelectionRestore = {
     selectedIds: new Set(selectedFileIds),
+    refreshSizes: Boolean(fileRefreshSelection.value),
     selectedSizes,
     selectedSize: selectedSize.value,
     viewportFileId: activeFileId,
@@ -1176,7 +1205,15 @@ function captureSelectionForFileListRefresh() {
 
 async function restoreSelectionAfterFileListRefresh() {
   const restoreState = pendingSelectionRestore;
-  if (!restoreState || isRestoringSelection || fileList.value.length === 0) return;
+  if (!restoreState || isRestoringSelection || !contentReady.value) return;
+  if (fileList.value.length === 0) {
+    pendingSelectionRestore = null;
+    resetSelectionSummary();
+    // Only metadata refresh promises to keep multi-select on an empty result.
+    // Other refresh flows must not override the current mode here.
+    if (restoreState.refreshSizes) selectMode.value = true;
+    return;
+  }
 
   isRestoringSelection = true;
   const requestId = currentContentRequestId;
@@ -1200,6 +1237,20 @@ async function restoreSelectionAfterFileListRefresh() {
     const nextSelectedIds = new Set(
       Array.from(restoreState.selectedIds).filter(id => availableIds.has(id)),
     );
+
+    // A metadata refresh may change sizes, including files outside loaded rows.
+    if (restoreState.refreshSizes) {
+      const ids = Array.from(nextSelectedIds);
+      for (let offset = 0; offset < ids.length; offset += 200) {
+        const files = await getFilesByIds(ids.slice(offset, offset + 200));
+        if (requestId !== currentContentRequestId || pendingSelectionRestore !== restoreState) {
+          retryForNewerRefresh = true;
+          return;
+        }
+        if (!Array.isArray(files)) return;
+        for (const file of files) restoreState.selectedSizes.set(Number(file.id), Number(file.size || 0));
+      }
+    }
 
     const viewportFileId = availableIds.has(restoreState.viewportFileId)
       ? restoreState.viewportFileId
@@ -1236,7 +1287,7 @@ async function restoreSelectionAfterFileListRefresh() {
       if (isRealFileItem(file)) file.isSelected = selectedFileIds.has(Number(file.id));
     }
     selectedCount.value = selectedFileIds.size;
-    selectedSize.value = nextSelectedIds.size === restoreState.selectedIds.size
+    selectedSize.value = !restoreState.refreshSizes && nextSelectedIds.size === restoreState.selectedIds.size
       ? restoreState.selectedSize
       : Array.from(selectedFileIds).reduce(
           (total, fileId) => total + Number(restoreState.selectedSizes.get(fileId) || 0),
@@ -1326,8 +1377,9 @@ async function scrollToGroupedFile(fileIndex: number) {
   }
 }
 
-watch(fileList, () => {
-  if (pendingSelectionRestore && fileList.value.length > 0) {
+watch([fileList, contentReady], () => {
+  if (!contentReady.value) return;
+  if (pendingSelectionRestore) {
     void restoreSelectionAfterFileListRefresh();
   } else if (pendingFocusedFileId && fileList.value.length > 0) {
     void restoreFocusedFileAfterListRefresh();
@@ -3029,7 +3081,6 @@ const isLoading = ref(false);     // show loading status in GridView (for empty 
 const imageSearchError = ref(false);
 const imageSearchLanguageUnsupported = ref(false);
 const hasLoadedInitialResult = ref(false); // avoid showing "No files found" before first real result returns
-const contentReady = ref(false);  // true after current view's content has loaded (empty or not), reset on navigation
 const contentCountIsAuthoritative = ref(false);
 const dedupSourceVersion = ref(0);
 
@@ -3909,7 +3960,7 @@ function handleItemAction(payload: { action: string, index: number }) {
   if (isSlideShow.value) return;
 
   const { action, index } = payload;
-  selectedItemIndex.value = index; // Ensure the item for the action is selected
+  if (index >= 0) selectedItemIndex.value = index; // Panel actions have no thumbnail index.
 
   if (action.startsWith('rating-')) {
     const rating = Number.parseInt(action.slice('rating-'.length), 10);
@@ -3972,7 +4023,7 @@ function handleItemAction(payload: { action: string, index: number }) {
       }
     },
     'reveal': () => revealPath(fileList.value[selectedItemIndex.value].file_path),
-    'refresh-file-info': () => void updateFile(fileList.value[selectedItemIndex.value], true),
+    'refresh-file-info': () => selectMode.value ? startSelectedFileRefresh() : void updateFile(fileList.value[selectedItemIndex.value], true),
     'favorite': toggleFavorite,
     'rotate': clickRotate,
     'info': toggleInfoPanel,

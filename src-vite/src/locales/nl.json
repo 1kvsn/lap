@@ -950,6 +950,15 @@
     "select_file": {
       "error": "Kan bestand niet kiezen."
     },
+    "file_refresh": {
+      "status": "Vernieuwingsstatus",
+      "running": "Vernieuwen…",
+      "cancelling": "Annuleren…",
+      "cancelled": "Geannuleerd",
+      "complete": "Voltooid",
+      "succeeded": "Bijgewerkt: {count}",
+      "failed": "Mislukt: {count}"
+    },
     "image_editor": {
       "title": "Bewerken",
       "tab_edit": "Algemeen",

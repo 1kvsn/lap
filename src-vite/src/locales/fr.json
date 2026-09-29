@@ -950,6 +950,15 @@
     "select_file": {
       "error": "Échec sélection fichier."
     },
+    "file_refresh": {
+      "status": "État de l’actualisation",
+      "running": "Actualisation…",
+      "cancelling": "Annulation…",
+      "cancelled": "Annulé",
+      "complete": "Terminé",
+      "succeeded": "Actualisés : {count}",
+      "failed": "Échecs : {count}"
+    },
     "image_editor": {
       "title": "Modifier",
       "tab_edit": "Général",

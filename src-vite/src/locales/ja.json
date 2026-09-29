@@ -950,6 +950,15 @@
     "select_file": {
       "error": "ファイル選択に失敗しました。"
     },
+    "file_refresh": {
+      "status": "更新状況",
+      "running": "更新中…",
+      "cancelling": "キャンセル中…",
+      "cancelled": "キャンセル済み",
+      "complete": "完了",
+      "succeeded": "更新済み：{count}",
+      "failed": "失敗：{count}"
+    },
     "image_editor": {
       "title": "編集",
       "tab_edit": "一般",

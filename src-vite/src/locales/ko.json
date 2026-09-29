@@ -950,6 +950,15 @@
     "select_file": {
       "error": "파일 선택 실패."
     },
+    "file_refresh": {
+      "status": "새로 고침 상태",
+      "running": "새로 고침 중…",
+      "cancelling": "취소 중…",
+      "cancelled": "취소됨",
+      "complete": "완료",
+      "succeeded": "업데이트됨: {count}",
+      "failed": "실패: {count}"
+    },
     "image_editor": {
       "title": "편집",
       "tab_edit": "일반",

@@ -950,6 +950,15 @@
     "select_file": {
       "error": "Nie udało się wybrać pliku."
     },
+    "file_refresh": {
+      "status": "Stan odświeżania",
+      "running": "Odświeżanie…",
+      "cancelling": "Anulowanie…",
+      "cancelled": "Anulowano",
+      "complete": "Ukończono",
+      "succeeded": "Zaktualizowano: {count}",
+      "failed": "Błędy: {count}"
+    },
     "image_editor": {
       "title": "Edycja",
       "tab_edit": "Ogólne",

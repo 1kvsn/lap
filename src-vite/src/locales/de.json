@@ -950,6 +950,15 @@
     "select_file": {
       "error": "Dateiauswahl fehlgeschlagen."
     },
+    "file_refresh": {
+      "status": "Aktualisierungsstatus",
+      "running": "Wird aktualisiert…",
+      "cancelling": "Wird abgebrochen…",
+      "cancelled": "Abgebrochen",
+      "complete": "Abgeschlossen",
+      "succeeded": "Aktualisiert: {count}",
+      "failed": "Fehlgeschlagen: {count}"
+    },
     "image_editor": {
       "title": "Bearbeiten",
       "tab_edit": "Allgemein",
