@@ -1559,6 +1559,7 @@
       "restore_default_confirm_ok": "Herstellen",
       "busy_library_indexing": "De gegevenslocatie kan niet worden gewijzigd terwijl de bibliotheek wordt geïndexeerd.",
       "busy_face_indexing": "De gegevenslocatie kan niet worden gewijzigd terwijl gezichten worden geïndexeerd.",
+      "cleanup_warning": "De bibliotheekgegevens zijn verplaatst, maar sommige oude bestanden konden niet worden verwijderd:",
       "change_success": "De bibliotheekgegevens zijn verplaatst",
       "restore_default_success": "De bibliotheekgegevens zijn teruggezet naar de standaardlocatie",
       "backup": "Back-up",

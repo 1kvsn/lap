@@ -1559,6 +1559,7 @@
       "restore_default_confirm_ok": "재설정",
       "busy_library_indexing": "라이브러리 인덱싱이 실행 중일 때는 데이터 위치를 변경할 수 없습니다.",
       "busy_face_indexing": "얼굴 인덱싱이 실행 중일 때는 데이터 위치를 변경할 수 없습니다.",
+      "cleanup_warning": "라이브러리 데이터가 이동되었지만 일부 이전 파일을 삭제하지 못했습니다:",
       "change_success": "라이브러리 데이터가 성공적으로 이동되었습니다",
       "restore_default_success": "라이브러리 데이터가 기본 위치로 다시 이동되었습니다",
       "backup": "백업",

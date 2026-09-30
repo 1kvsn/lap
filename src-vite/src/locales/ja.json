@@ -1559,6 +1559,7 @@
       "restore_default_confirm_ok": "リセット",
       "busy_library_indexing": "ライブラリの索引作成中は保存場所を変更できません。",
       "busy_face_indexing": "顔インデックス作成中は保存場所を変更できません。",
+      "cleanup_warning": "ライブラリデータを移動しましたが、一部の古いファイルを削除できませんでした：",
       "change_success": "ライブラリデータを移動しました",
       "restore_default_success": "ライブラリデータを既定の保存場所に戻しました",
       "backup": "バックアップ",

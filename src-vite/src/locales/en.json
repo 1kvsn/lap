@@ -1559,6 +1559,7 @@
       "restore_default_confirm_ok": "Reset",
       "busy_library_indexing": "Cannot change the data location while library indexing is running.",
       "busy_face_indexing": "Cannot change the data location while face indexing is running.",
+      "cleanup_warning": "Library data was moved, but some old files could not be removed:",
       "change_success": "Library data has been moved successfully",
       "restore_default_success": "Library data has been moved back to the default location",
       "backup": "Backup",

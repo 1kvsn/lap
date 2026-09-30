@@ -1559,6 +1559,7 @@
       "restore_default_confirm_ok": "Redefinir",
       "busy_library_indexing": "Não é possível alterar o local dos dados enquanto a indexação da biblioteca estiver em execução.",
       "busy_face_indexing": "Não é possível alterar o local dos dados enquanto a indexação facial estiver em execução.",
+      "cleanup_warning": "Os dados da biblioteca foram movidos, mas não foi possível remover alguns arquivos antigos:",
       "change_success": "Os dados da biblioteca foram movidos com sucesso",
       "restore_default_success": "Os dados da biblioteca foram movidos de volta para o local padrão",
       "backup": "Backup",

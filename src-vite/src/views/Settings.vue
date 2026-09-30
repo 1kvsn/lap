@@ -1619,9 +1619,13 @@ async function chooseDbStorageDir() {
   try {
     isChangingDbStorage.value = true;
     const newPath = await changeDbStorageDir(result);
-    dbStorageDir.value = String(newPath || result);
+    dbStorageDir.value = String(newPath.path || result);
     hasCustomDbStorage.value = true;
-    toast.success(localeMsg.value.settings?.database?.change_success || 'Library data has been moved successfully');
+    if (newPath.cleanupWarnings?.length) {
+      toast.warning(`${localeMsg.value.settings?.database?.cleanup_warning || 'Library data was moved, but some old files could not be removed:'}\n${newPath.cleanupWarnings.join('\n')}`, { duration: 10000 });
+    } else {
+      toast.success(localeMsg.value.settings?.database?.change_success || 'Library data has been moved successfully');
+    }
   } catch (error: any) {
     toast.error(error?.message || String(error));
   } finally {
@@ -1650,9 +1654,13 @@ async function confirmResetDbStorageDir() {
   try {
     isChangingDbStorage.value = true;
     const newPath = await resetDbStorageDir();
-    dbStorageDir.value = String(newPath || '');
+    dbStorageDir.value = String(newPath.path || '');
     hasCustomDbStorage.value = false;
-    toast.success(localeMsg.value.settings?.database?.restore_default_success || 'Library data has been moved back to the default location');
+    if (newPath.cleanupWarnings?.length) {
+      toast.warning(`${localeMsg.value.settings?.database?.cleanup_warning || 'Library data was moved, but some old files could not be removed:'}\n${newPath.cleanupWarnings.join('\n')}`, { duration: 10000 });
+    } else {
+      toast.success(localeMsg.value.settings?.database?.restore_default_success || 'Library data has been moved back to the default location');
+    }
   } catch (error: any) {
     toast.error(error?.message || String(error));
   } finally {

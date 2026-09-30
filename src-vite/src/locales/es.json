@@ -1559,6 +1559,7 @@
       "restore_default_confirm_ok": "Restablecer",
       "busy_library_indexing": "No se puede cambiar la ubicación de los datos mientras el indexado de la biblioteca está en ejecución.",
       "busy_face_indexing": "No se puede cambiar la ubicación de los datos mientras el indexado de rostros está en ejecución.",
+      "cleanup_warning": "Los datos de la biblioteca se movieron, pero no se pudieron eliminar algunos archivos antiguos:",
       "change_success": "Los datos de la biblioteca se movieron correctamente",
       "restore_default_success": "Los datos de la biblioteca volvieron a la ubicación predeterminada",
       "backup": "Copia de seguridad",

@@ -1559,6 +1559,7 @@
       "restore_default_confirm_ok": "Zurücksetzen",
       "busy_library_indexing": "Der Speicherort kann während der Bibliotheksindizierung nicht geändert werden.",
       "busy_face_indexing": "Der Speicherort kann während der Gesichtserkennung nicht geändert werden.",
+      "cleanup_warning": "Die Bibliotheksdaten wurden verschoben, aber einige alte Dateien konnten nicht entfernt werden:",
       "change_success": "Bibliotheksdaten wurden erfolgreich verschoben",
       "restore_default_success": "Bibliotheksdaten wurden an den Standardspeicherort zurückverschoben",
       "backup": "Backup",

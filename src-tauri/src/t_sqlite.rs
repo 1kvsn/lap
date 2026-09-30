@@ -6939,6 +6939,7 @@ impl AThumb {
             rows.map(|row| row.map_err(|e| e.to_string()))
                 .collect::<Result<HashSet<String>, String>>()?
         } else {
+            let _lease = t_storage::DbConnectionLease::acquire()?;
             let db_path = crate::t_storage::get_library_db_path(&target_library_id)?;
             let conn = rusqlite::Connection::open(&db_path)
                 .map_err(|e| format!("Failed to open library DB: {}", e))?;
@@ -9459,7 +9460,7 @@ fn is_corruption_error(err: &str) -> bool {
 }
 
 /// A pooled connection that returns to the global pool on Drop.
-pub(crate) struct PooledConn(Option<(String, Connection)>);
+pub(crate) struct PooledConn(Option<(String, Connection)>, t_storage::DbConnectionLease);
 
 impl Drop for PooledConn {
     fn drop(&mut self) {
@@ -9514,6 +9515,7 @@ pub(crate) fn clear_conn_pool() {
 }
 
 pub(crate) fn open_conn() -> Result<PooledConn, String> {
+    let lease = t_storage::DbConnectionLease::acquire()?;
     let current_path = t_storage::get_current_db_path()
         .map_err(|e| format!("Failed to get the database file path: {}", e))?;
     if is_path_corrupted(&current_path) {
@@ -9523,16 +9525,17 @@ pub(crate) fn open_conn() -> Result<PooledConn, String> {
         // Only reuse connections pointing to the same DB file
         while let Some((path, conn)) = pool.pop() {
             if path == current_path {
-                return Ok(PooledConn(Some((path, conn))));
+                return Ok(PooledConn(Some((path, conn)), lease));
             }
             // Stale connection for a different library — drop it
         }
     }
-    Ok(PooledConn(Some(create_conn()?)))
+    Ok(PooledConn(Some(create_conn()?), lease))
 }
 
 /// create all tables if not exists
 pub fn create_db() -> Result<(), String> {
+    let _lease = t_storage::DbConnectionLease::acquire()?;
     let path = t_storage::get_current_db_path()?;
     // Re-evaluating this library: clear any stale corrupt mark for it before checking.
     clear_db_corrupted(&path);

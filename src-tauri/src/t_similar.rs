@@ -54,12 +54,8 @@ struct VectorFile {
     vector: Vec<f32>,
 }
 
-fn get_db_conn() -> Result<Connection, String> {
-    let path = crate::t_storage::get_current_db_path().map_err(|e| e.to_string())?;
-    let conn = Connection::open(path).map_err(|e| e.to_string())?;
-    conn.execute("PRAGMA foreign_keys = ON", [])
-        .map_err(|e| e.to_string())?;
-    Ok(conn)
+fn get_db_conn() -> Result<crate::t_sqlite::PooledConn, String> {
+    crate::t_sqlite::open_conn()
 }
 
 fn resolve_scope(

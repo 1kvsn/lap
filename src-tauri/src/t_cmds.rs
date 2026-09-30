@@ -323,7 +323,7 @@ fn ensure_db_storage_change_allowed(
 pub fn change_db_storage_dir(
     new_dir: &str,
     status_state: State<t_face::FaceIndexingStatus>,
-) -> Result<String, String> {
+) -> Result<t_storage::DbStorageChangeResult, String> {
     ensure_db_storage_change_allowed(&status_state)?;
     let result = t_storage::change_db_storage_dir(new_dir);
     if result.is_ok() {
@@ -335,7 +335,7 @@ pub fn change_db_storage_dir(
 #[tauri::command]
 pub fn reset_db_storage_dir(
     status_state: State<t_face::FaceIndexingStatus>,
-) -> Result<String, String> {
+) -> Result<t_storage::DbStorageChangeResult, String> {
     ensure_db_storage_change_allowed(&status_state)?;
     let result = t_storage::reset_db_storage_dir();
     if result.is_ok() {

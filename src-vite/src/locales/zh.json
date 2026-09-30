@@ -1559,6 +1559,7 @@
       "restore_default_confirm_ok": "重置",
       "busy_library_indexing": "资料库索引进行中，无法更改数据位置。",
       "busy_face_indexing": "人脸索引进行中，无法更改数据位置。",
+      "cleanup_warning": "资料库数据已迁移，但部分旧文件未能删除：",
       "change_success": "资料库数据已成功迁移",
       "restore_default_success": "资料库数据已迁回默认位置",
       "backup": "备份",

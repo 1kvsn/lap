@@ -253,13 +253,8 @@ fn scan_and_hash_files(
     Ok(())
 }
 
-fn get_db_conn() -> Result<Connection, String> {
-    let path = crate::t_storage::get_current_db_path()
-        .map_err(|e| format!("Failed to get db path: {}", e))?;
-    let conn = Connection::open(&path).map_err(|e| format!("Failed to open db: {}", e))?;
-    conn.execute("PRAGMA foreign_keys = ON", [])
-        .map_err(|e| format!("Failed to enable foreign keys: {}", e))?;
-    Ok(conn)
+fn get_db_conn() -> Result<crate::t_sqlite::PooledConn, String> {
+    crate::t_sqlite::open_conn()
 }
 
 fn get_files_by_sizes(conn: &Connection) -> Result<Vec<AFile>, String> {

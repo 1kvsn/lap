@@ -1559,6 +1559,7 @@
       "restore_default_confirm_ok": "Réinitialiser",
       "busy_library_indexing": "Impossible de changer l’emplacement des données pendant l’indexation de la bibliothèque.",
       "busy_face_indexing": "Impossible de changer l’emplacement des données pendant l’indexation des visages.",
+      "cleanup_warning": "Les données de la bibliothèque ont été déplacées, mais certains anciens fichiers n’ont pas pu être supprimés :",
       "change_success": "Les données de la bibliothèque ont été déplacées avec succès",
       "restore_default_success": "Les données de la bibliothèque ont été rétablies à l’emplacement par défaut",
       "backup": "Sauvegarder",

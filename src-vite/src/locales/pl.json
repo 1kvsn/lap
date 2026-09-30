@@ -1559,6 +1559,7 @@
       "restore_default_confirm_ok": "Przywróć",
       "busy_library_indexing": "Nie można zmienić lokalizacji danych podczas indeksowania biblioteki.",
       "busy_face_indexing": "Nie można zmienić lokalizacji danych podczas indeksowania twarzy.",
+      "cleanup_warning": "Dane biblioteki zostały przeniesione, ale nie udało się usunąć niektórych starych plików:",
       "change_success": "Dane biblioteki zostały pomyślnie przeniesione",
       "restore_default_success": "Dane biblioteki zostały przeniesione z powrotem do domyślnej lokalizacji",
       "backup": "Kopia zapasowa",

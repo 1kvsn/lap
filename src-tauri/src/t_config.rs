@@ -836,6 +836,7 @@ pub struct LibraryInfo {
 }
 
 pub fn get_library_info(id: &str) -> Result<LibraryInfo, String> {
+    let _lease = t_storage::DbConnectionLease::acquire()?;
     let db_path = t_storage::get_library_db_path(id)?;
 
     // Get db file size
