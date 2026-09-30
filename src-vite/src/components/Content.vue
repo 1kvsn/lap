@@ -6396,6 +6396,10 @@ async function initializeGroupedFileList(requestId: number) {
   }
 
   const normalized = normalizeGroupedRowsResult(groupedResult);
+  // Invalidate the old viewport before replacing rows, so an unchanged range
+  // still hydrates the new placeholders when the virtual scroller updates.
+  lastVisibleRange = { start: -1, end: -1 };
+  visibleRangeSeqId++;
   clearSelectionForFileListUpdate();
   groupedModeActive.value = true;
   groupedTimelineGroups.value = normalized.groups;
@@ -6443,8 +6447,6 @@ async function initializeGroupedFileList(requestId: number) {
   if (totalFileCount.value === 0) {
     openImageViewer(0, false, true);
   }
-  lastVisibleRange = { start: -1, end: -1 };
-  visibleRangeSeqId++;
   return true;
 }
 
