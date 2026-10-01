@@ -542,9 +542,22 @@ jobs:
               --prerelease
           fi
 
+          # Remove only the stale assets whose file type was rebuilt in THIS run,
+          # so a partial run (e.g. macOS only) keeps the other platforms' files.
+          # Extensions are platform-unique (dmg | msi/sig | deb/AppImage/zsync),
+          # so matching the produced extensions scopes the cleanup per platform.
+          mapfile -t rebuilt_exts < <(find release-files -type f | sed -E 's/.*(\.[A-Za-z0-9]+)$/\1/' | sort -u)
+
           gh release view "$TAG" -R "$GH_REPO" --json assets --jq '.assets[].name' | while IFS= read -r asset; do
             [ -n "$asset" ] || continue
-            gh release delete-asset "$TAG" "$asset" -R "$GH_REPO" -y
+            ext=".${asset##*.}"
+            for e in "${rebuilt_exts[@]}"; do
+              if [ "${ext,,}" = "${e,,}" ]; then
+                echo "Deleting stale asset for a rebuilt platform: $asset"
+                gh release delete-asset "$TAG" "$asset" -R "$GH_REPO" -y
+                break
+              fi
+            done
           done
 
-          find release-files -type f | xargs gh release upload "$TAG" -R "$GH_REPO" --clobber
+          find release-files -type f -print0 | xargs -0 -r gh release upload "$TAG" -R "$GH_REPO" --clobber
