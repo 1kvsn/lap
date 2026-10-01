@@ -1152,6 +1152,7 @@
     "loading": "Wczytywanie...",
     "loading_original": "Wczytywanie oryginalnego zdjęcia...",
     "failed": "Nie udało się wczytać zdjęcia. Plik jest uszkodzony lub nie istnieje.",
+    "raw_render_unavailable": "Nie można wyrenderować tego RAW; pokazano osadzony podgląd.",
     "toolbar": {
       "prev": "Poprzednie",
       "next": "Następne",
@@ -1254,12 +1255,31 @@
       "show_status_bar": "Pokazuj pasek stanu",
       "auto_check_updates": "Automatycznie sprawdzaj aktualizacje"
     },
+    "raw": {
+      "title": "RAW",
+      "section_pairs": "Pliki w parach",
+      "pair_source": "Domyślne wyświetlanie par",
+      "pair_source_hint": "Używane dla sparowanych miniatur i podglądów.",
+      "pair_jpeg": "JPEG / HEIC",
+      "rawPreviewSource": "Domyślne źródło podglądu",
+      "rawRenderBrightness": "Jasność renderowania",
+      "option_embedded": "Preferuj osadzony podgląd",
+      "option_rendered": "Zawsze renderuj RAW",
+      "brightness_hint": "Dotyczy renderowania RAW, również gdy osadzony podgląd jest niedostępny.",
+      "switch_to": "Przełącz na {source}",
+      "show_pair": "Pokaż sparowany {format}",
+      "source_embedded": "Osadzony",
+      "source_rendered": "Renderowany",
+      "source_brightened": "Rozjaśniona",
+      "option_original": "Oryginalna ekspozycja",
+      "option_brightened": "Rozjaśniona",
+      "preview_mode": "Tryb podglądu RAW"
+    },
     "browse": {
       "title": "Przeglądanie",
       "section_album": "Album",
       "show_subfolder_files": "Pokazuj pliki z podfolderów",
       "show_subfolder_files_hint": "Widok folderów zawiera pliki z folderów podrzędnych",
-      "section_file_display": "Wyświetlanie plików",
       "group_raw_jpeg_pairs": "Grupuj pary RAW",
       "group_raw_jpeg_pairs_hint": "Pokazuj dopasowane pliki RAW i JPEG/HEIC jako jeden element",
       "section_sorting": "Sortowanie",
@@ -1509,12 +1529,6 @@
       "section_thumbnail_cache": "Cache miniatur",
       "thumbnail_quality": "Jakość miniatur",
       "thumbnail_quality_hint": "Ustawia rozdzielczość generowanych miniatur. Wyższe ustawienia wyglądają ostrzej, ale generowanie trwa dłużej i zajmuje więcej miejsca na dysku",
-      "raw_thumbnail_source": "Źródło miniatur RAW",
-      "raw_thumbnail_source_hint": "Wybierz sposób generowania miniatur plików RAW",
-      "raw_thumbnail_source_options": [
-        "Renderowanie RAW (domyślne)",
-        "Osadzony podgląd (szybsze)"
-      ],
       "section_map": "Mapa",
       "map_provider": "Dostawca map",
       "map_provider_hint": "Wybierz usługę mapową dla widoku mapy",

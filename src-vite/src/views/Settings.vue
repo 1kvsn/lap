@@ -7,17 +7,17 @@
       <!-- Sidebar -->
       <div class="w-40 m-1 p-2 bg-base-200/30 flex flex-col rounded-box overflow-y-auto shrink-0 select-none">
         <div
-          v-for="(tab, index) in settingsTabs"
-          :key="index"
+          v-for="tab in settingsTabs"
+          :key="tab.id"
           :class="[
             'px-3 py-2 rounded-box cursor-pointer transition-all duration-200 font-medium flex items-center',
-            config.settings.tabIndex === index 
+            config.settings.tabIndex === tab.id
               ? 'bg-base-100 text-primary' 
               : 'hover:text-base-content hover:bg-base-100/30'
           ]"
-          @click="config.settings.tabIndex = index"
+          @click="config.settings.tabIndex = tab.id"
         >
-          {{ $t(tab) }}
+          {{ $t(tab.label) }}
         </div>
       </div>
 
@@ -25,7 +25,7 @@
       <div class="p-2 mr-1 mb-2 flex-1 overflow-y-auto scrollbar-hide bg-base-300 cursor-default select-none">
           
         <!-- General Tab -->
-        <div v-if="config.settings.tabIndex === 0" class="flex flex-col space-y-2">
+        <div v-if="config.settings.tabIndex === SETTINGS_TAB.GENERAL" class="flex flex-col space-y-2">
           
           <!-- languange -->
           <div class="rounded-box p-2 space-y-2 bg-base-300/30 border border-base-content/5 shadow-sm">
@@ -109,7 +109,7 @@
         </div>
 
         <!-- Grid Tab -->
-        <div v-else-if="config.settings.tabIndex === 2" class="flex flex-col space-y-2">
+        <div v-else-if="config.settings.tabIndex === SETTINGS_TAB.GRID" class="flex flex-col space-y-2">
 
           <!-- grid view -->
           <div class="rounded-box p-2 space-y-2 bg-base-300/30 border border-base-content/5 shadow-sm">
@@ -199,7 +199,7 @@
         </div>
 
         <!-- Viewer Tab -->
-        <div v-else-if="config.settings.tabIndex === 3" class="flex flex-col space-y-2">
+        <div v-else-if="config.settings.tabIndex === SETTINGS_TAB.IMAGE_VIEW" class="flex flex-col space-y-2">
 
           <!-- navigation -->
           <div class="rounded-box p-2 space-y-2 bg-base-300/30 border border-base-content/5 shadow-sm">
@@ -281,8 +281,48 @@
 
         </div>
 
+        <!-- RAW Tab -->
+        <div v-else-if="config.settings.tabIndex === SETTINGS_TAB.RAW" class="flex flex-col space-y-2">
+          <div class="rounded-box p-2 space-y-2 bg-base-300/30 border border-base-content/5 shadow-sm">
+            <div class="flex items-center gap-2 text-base-content/30">
+              <span class="font-bold uppercase text-[10px] tracking-widest">{{ $t('settings.raw.section_pairs') }}</span>
+            </div>
+            <div class="flex items-center justify-between gap-3 px-1 rounded-box hover:bg-base-100/10 transition-colors duration-200">
+              <label for="raw-group-pairs" class="min-w-0 flex flex-col gap-0.5 text-sm leading-5">
+                <span>{{ $t('settings.browse.group_raw_jpeg_pairs') }}</span>
+                <span class="text-xs text-base-content/30">{{ $t('settings.browse.group_raw_jpeg_pairs_hint') }}</span>
+              </label>
+              <input id="raw-group-pairs" type="checkbox" class="toggle toggle-primary toggle-sm shrink-0" v-model="config.settings.groupRawJpegPairs" />
+            </div>
+            <div v-if="config.settings.groupRawJpegPairs" class="flex items-center justify-between gap-3 px-1 rounded-box hover:bg-base-100/10 transition-colors duration-200">
+              <label for="raw-pair-source" class="min-w-0 flex flex-col gap-0.5 text-sm leading-5">
+                <span>{{ $t('settings.raw.pair_source') }}</span>
+                <span class="text-xs text-base-content/30">{{ $t('settings.raw.pair_source_hint') }}</span>
+              </label>
+              <select id="raw-pair-source" class="select select-bordered select-sm w-40 shrink-0 max-w-full" v-model="config.settings.rawPairDisplaySource">
+                <option value="jpeg">{{ $t('settings.raw.pair_jpeg') }}</option>
+                <option value="raw">RAW</option>
+              </select>
+            </div>
+          </div>
+          <div class="rounded-box p-2 space-y-2 bg-base-300/30 border border-base-content/5 shadow-sm">
+            <div class="flex items-center gap-2 text-base-content/30">
+              <span id="raw-preview-heading" class="font-bold uppercase text-[10px] tracking-widest">{{ $t('settings.raw.preview_mode') }}</span>
+            </div>
+            <div v-for="field in rawPreviewFields" :key="field.key" class="flex items-center justify-between gap-3 px-1 rounded-box hover:bg-base-100/10 transition-colors duration-200">
+              <label :for="field.key" class="min-w-0 flex flex-col gap-0.5 text-sm leading-5">
+                <span>{{ $t('settings.raw.' + field.key) }}</span>
+                <span v-if="field.hint" class="text-xs text-base-content/30">{{ $t('settings.raw.' + field.hint) }}</span>
+              </label>
+              <select :id="field.key" class="select select-bordered select-sm w-48 shrink-0 max-w-full" v-model="config.settings[field.key]">
+                <option v-for="option in field.options" :key="option" :value="option">{{ $t('settings.raw.option_' + option) }}</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
         <!-- Search Tab -->
-        <div v-else-if="config.settings.tabIndex === 4" class="flex flex-col overflow-hidden space-y-2">
+        <div v-else-if="config.settings.tabIndex === SETTINGS_TAB.IMAGE_SEARCH" class="flex flex-col overflow-hidden space-y-2">
 
           <!-- image search -->
           <div class="rounded-box p-2 space-y-2 bg-base-300/30 border border-base-content/5 shadow-sm">
@@ -394,7 +434,7 @@
         </div>
 
         <!-- Browse Tab -->
-        <div v-else-if="config.settings.tabIndex === 1" class="flex flex-col space-y-2">
+        <div v-else-if="config.settings.tabIndex === SETTINGS_TAB.BROWSE" class="flex flex-col space-y-2">
 
           <!-- album -->
           <div class="rounded-box p-2 space-y-2 bg-base-300/30 border border-base-content/5 shadow-sm">
@@ -408,21 +448,6 @@
               </div>
               <input type="checkbox" class="toggle toggle-primary toggle-sm" v-model="config.settings.showSubfolderFiles" />
             </div>
-          </div>
-
-          <!-- file display -->
-          <div class="rounded-box p-2 space-y-2 bg-base-300/30 border border-base-content/5 shadow-sm">
-            <div class="flex items-center gap-2 text-base-content/30">
-              <span class="font-bold uppercase text-[10px] tracking-widest">{{ $t('settings.browse.section_file_display') }}</span>
-            </div>
-            <div class="flex items-center justify-between px-1 rounded-box hover:bg-base-100/10 transition-colors duration-200">
-              <div class="flex flex-col gap-0.5 text-sm leading-5">
-                <div>{{ $t('settings.browse.group_raw_jpeg_pairs') }}</div>
-                <div class="text-xs text-base-content/30">{{ $t('settings.browse.group_raw_jpeg_pairs_hint') }}</div>
-              </div>
-              <input type="checkbox" class="toggle toggle-primary toggle-sm" v-model="config.settings.groupRawJpegPairs" />
-            </div>
-
           </div>
 
           <!-- sorting -->
@@ -462,7 +487,7 @@
         </div>
 
         <!-- Advanced Tab -->
-        <div v-else-if="config.settings.tabIndex === 5" class="flex flex-col space-y-2">
+        <div v-else-if="config.settings.tabIndex === SETTINGS_TAB.ADVANCED" class="flex flex-col space-y-2">
 
           <!-- thumbnail cache -->
           <div class="rounded-box p-2 space-y-2 bg-base-300/30 border border-base-content/5 shadow-sm">
@@ -476,15 +501,6 @@
               </div>
               <select class="select select-bordered select-sm min-w-40 shrink-0" :value="config.settings.thumbnailSize" @change="onThumbnailSizeChange">
                 <option v-for="option in thumbnailQualityOptions" :key="option.value" :value="option.value">{{ option.label }}</option>
-              </select>
-            </div>
-            <div class="flex items-center justify-between gap-4 px-1 rounded-box hover:bg-base-100/10 transition-colors duration-200">
-              <div class="min-w-0 flex flex-col gap-0.5 text-sm leading-5">
-                <div>{{ $t('settings.advanced.raw_thumbnail_source') }}</div>
-                <div class="text-xs text-base-content/30">{{ $t('settings.advanced.raw_thumbnail_source_hint') }}</div>
-              </div>
-              <select class="select select-bordered select-sm min-w-40 shrink-0" :value="config.settings.rawThumbnailSource" @change="onRawThumbnailSourceChange">
-                <option v-for="option in rawThumbnailSourceOptions" :key="option.value" :value="option.value">{{ option.label }}</option>
               </select>
             </div>
           </div>
@@ -607,7 +623,7 @@
         </div>
 
         <!-- Shortcuts Tab -->
-        <div v-else-if="config.settings.tabIndex === 6" class="flex flex-col space-y-2">
+        <div v-else-if="config.settings.tabIndex === SETTINGS_TAB.SHORTCUTS" class="flex flex-col space-y-2">
           <div
             v-for="section in shortcutSections"
             :key="section.key"
@@ -637,7 +653,7 @@
           </div>
         </div>
         <!-- About Tab -->
-        <div v-else-if="config.settings.tabIndex === 7" class="py-2">
+        <div v-else-if="config.settings.tabIndex === SETTINGS_TAB.ABOUT" class="py-2">
             <SettingsAbout />
         </div>
 
@@ -688,7 +704,7 @@ import { ask, open as openDialog } from '@tauri-apps/plugin-dialog';
 import { useI18n } from 'vue-i18n';
 import { config, libConfig } from '@/common/config';
 import { normalizeThumbnailSize } from '@/common/thumbnailProfiles';
-import { THUMBNAIL_BADGE, MAP_MARKER_SIZES } from '@/common/constants';
+import { THUMBNAIL_BADGE, MAP_MARKER_SIZES, SETTINGS_TAB } from '@/common/constants';
 import {
   getDbStorageDir,
   changeDbStorageDir,
@@ -719,14 +735,19 @@ const localeMsg = computed(() => messages.value[config.settings.language] as any
 const toast = useToast();
 const shortcutPlatform: ShortcutPlatform = isMac ? 'mac' : (isLinux ? 'linux' : 'windows');
 const settingsTabs = [
-  'settings.general.title',
-  'settings.browse.title',
-  'settings.grid.title',
-  'settings.image_view.title',
-  'settings.image_search.title',
-  'settings.advanced.title',
-  'settings.shortcuts.title',
-  'settings.about.title',
+  { id: SETTINGS_TAB.GENERAL, label: 'settings.general.title' },
+  { id: SETTINGS_TAB.BROWSE, label: 'settings.browse.title' },
+  { id: SETTINGS_TAB.GRID, label: 'settings.grid.title' },
+  { id: SETTINGS_TAB.IMAGE_VIEW, label: 'settings.image_view.title' },
+  { id: SETTINGS_TAB.RAW, label: 'settings.raw.title' },
+  { id: SETTINGS_TAB.IMAGE_SEARCH, label: 'settings.image_search.title' },
+  { id: SETTINGS_TAB.ADVANCED, label: 'settings.advanced.title' },
+  { id: SETTINGS_TAB.SHORTCUTS, label: 'settings.shortcuts.title' },
+  { id: SETTINGS_TAB.ABOUT, label: 'settings.about.title' },
+];
+const rawPreviewFields = [
+  { key: 'rawPreviewSource', hint: '', options: ['embedded', 'rendered'] },
+  { key: 'rawRenderBrightness', hint: 'brightness_hint', options: ['original', 'brightened'] },
 ];
 
 const appWindow = getCurrentWebviewWindow()
@@ -863,17 +884,6 @@ const thumbnailQualityOptions = computed(() => {
   ];
 });
 
-const rawThumbnailSourceOptions = computed(() => {
-  const labels = localeMsg.value.settings.advanced.raw_thumbnail_source_options || [
-    'RAW Rendering (default)',
-    'Embedded preview (faster)',
-  ];
-  return [
-    { value: 'processed', label: labels[0] },
-    { value: 'embedded', label: labels[1] },
-  ];
-});
-
 const mapProviderOptions = computed(() => {
   const labels = localeMsg.value.settings.advanced.map_provider_options || [
     'Global (default)',
@@ -924,12 +934,6 @@ function onThumbnailSizeChange(event: Event) {
   const next = normalizeThumbnailSize((event.target as HTMLSelectElement).value);
   if (normalizeThumbnailSize(config.settings.thumbnailSize) === next) return;
   config.settings.thumbnailSize = next;
-}
-
-function onRawThumbnailSourceChange(event: Event) {
-  config.settings.rawThumbnailSource = (event.target as HTMLSelectElement).value === 'embedded'
-    ? 'embedded'
-    : 'processed';
 }
 
 // Define the grid scaling options
@@ -1384,8 +1388,8 @@ const cancelMultilingualModelDownload = async () => {
 
 onMounted(async () => {
   window.addEventListener('keydown', handleKeyDown);
-  if (typeof config.settings.tabIndex !== 'number' || config.settings.tabIndex < 0 || config.settings.tabIndex > 7) {
-    config.settings.tabIndex = 0;
+  if (!settingsTabs.some(tab => tab.id === config.settings.tabIndex)) {
+    config.settings.tabIndex = SETTINGS_TAB.GENERAL;
   }
   if (typeof config.settings.imageSearch.model !== 'number') {
     config.settings.imageSearch.model = 0;
@@ -1486,13 +1490,21 @@ watch(() => config.settings.groupRawJpegPairs, (newValue) => {
   emit('settings-groupRawJpegPairs-changed', newValue);
 });
 
+watch(() => config.settings.rawPairDisplaySource, (newValue) => {
+  emit('settings-rawPairDisplaySource-changed', newValue);
+});
+watch(() => config.settings.rawPreviewSource, (newValue) => {
+  emit('settings-rawPreviewSource-changed', newValue);
+});
+watch(() => config.settings.rawRenderBrightness, (newValue) => {
+  emit('settings-rawRenderBrightness-changed', newValue);
+});
+
 // grid view settings
 watch(() => config.settings.thumbnailSize, (newValue) => {
   emit('settings-thumbnailSize-changed', newValue);
 });
-watch(() => config.settings.rawThumbnailSource, (newValue) => {
-  emit('settings-rawThumbnailSource-changed', newValue);
-});
+
 watch(() => config.settings.mapProvider, (newValue) => {
   emit('settings-mapProvider-changed', newValue);
 });
@@ -1568,17 +1580,18 @@ watch(() => config.settings.face.clusterThresholdIndex, (newValue) => {
 // Handle keyboard shortcuts
 function handleKeyDown(event: KeyboardEvent) {
   const navigationKeys = ['Tab', 'Escape'];
-  
+
   // Disable default behavior for certain keys
   if (navigationKeys.includes(event.key)) {
     event.preventDefault();
   }
 
   switch (event.key) {
-    case 'Tab':
-      config.settings.tabIndex += 1;
-      config.settings.tabIndex = config.settings.tabIndex % settingsTabs.length;
+    case 'Tab': {
+      const current = settingsTabs.findIndex(tab => tab.id === config.settings.tabIndex);
+      config.settings.tabIndex = settingsTabs[(current + 1) % settingsTabs.length].id;
       break;
+    }
     case 'Escape':
       // Close the topmost dialog first
       if (showBackupDialog.value) { showBackupDialog.value = false; return; }

@@ -1152,6 +1152,7 @@
     "loading": "로딩 중...",
     "loading_original": "원본 사진을 불러오는 중...",
     "failed": "사진을 불러오지 못했습니다. 파일이 없거나 손상되었습니다.",
+    "raw_render_unavailable": "이 RAW는 렌더링할 수 없습니다. 내장 미리보기 표시 중.",
     "toolbar": {
       "prev": "이전",
       "next": "다음",
@@ -1254,12 +1255,31 @@
       "show_status_bar": "상태 표시줄",
       "auto_check_updates": "업데이트 자동 확인"
     },
+    "raw": {
+      "title": "RAW",
+      "section_pairs": "쌍을 이룬 파일",
+      "pair_source": "쌍의 기본 표시",
+      "pair_source_hint": "쌍을 이룬 썸네일과 미리보기에 사용됩니다.",
+      "pair_jpeg": "JPEG / HEIC",
+      "rawPreviewSource": "기본 미리보기 소스",
+      "rawRenderBrightness": "렌더링 밝기",
+      "option_embedded": "내장 미리보기 우선",
+      "option_rendered": "항상 RAW 렌더링",
+      "brightness_hint": "내장 미리보기를 사용할 수 없는 경우를 포함해 RAW 렌더링 시 적용됩니다.",
+      "switch_to": "{source}(으)로 전환",
+      "show_pair": "페어링된 {format} 표시",
+      "source_embedded": "내장",
+      "source_rendered": "렌더링",
+      "source_brightened": "밝게",
+      "option_original": "원본 노출",
+      "option_brightened": "밝게",
+      "preview_mode": "RAW 미리보기 모드"
+    },
     "browse": {
       "title": "탐색",
       "section_album": "앨범",
       "show_subfolder_files": "하위 폴더의 파일 표시",
       "show_subfolder_files_hint": "폴더 보기에서 하위 폴더의 파일을 포함합니다",
-      "section_file_display": "파일 표시",
       "group_raw_jpeg_pairs": "RAW 쌍을 하나로 표시",
       "group_raw_jpeg_pairs_hint": "일치하는 RAW 및 JPEG/HEIC 파일을 하나의 항목으로 표시합니다",
       "section_sorting": "정렬",
@@ -1509,12 +1529,6 @@
       "section_thumbnail_cache": "썸네일 캐시",
       "thumbnail_quality": "썸네일 품질",
       "thumbnail_quality_hint": "생성된 썸네일의 해상도를 설정합니다. 높은 설정일수록 더 선명하지만 생성 시간이 길고 디스크 공간을 더 사용합니다",
-      "raw_thumbnail_source": "RAW 썸네일 소스",
-      "raw_thumbnail_source_hint": "RAW 파일의 썸네일 생성 방식을 선택합니다",
-      "raw_thumbnail_source_options": [
-        "RAW 렌더링(기본값)",
-        "내장 미리보기(더 빠름)"
-      ],
       "section_map": "지도",
       "map_provider": "지도 서비스",
       "map_provider_hint": "지도 보기에 사용할 지도 서비스를 선택합니다",

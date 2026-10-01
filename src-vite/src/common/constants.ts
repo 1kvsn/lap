@@ -81,3 +81,20 @@ export const SIMILAR_SCAN = {
 
 // map photo marker size presets (px)
 export const MAP_MARKER_SIZES: readonly number[] = [48, 64, 88, 120];
+
+// Settings window tab ids — single source of truth. Use these names (never raw
+// literals) wherever a settings tab is opened or matched, so reordering tabs
+// only requires editing this map and the settingsTabs list in Settings.vue.
+export const SETTINGS_TAB = {
+  GENERAL: 0,
+  BROWSE: 1,
+  GRID: 2,
+  IMAGE_VIEW: 3,
+  RAW: 4,
+  IMAGE_SEARCH: 5,
+  ADVANCED: 6,
+  SHORTCUTS: 7,
+  ABOUT: 8,
+} as const;
+
+export type SettingsTab = (typeof SETTINGS_TAB)[keyof typeof SETTINGS_TAB];

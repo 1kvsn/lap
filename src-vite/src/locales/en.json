@@ -1152,6 +1152,7 @@
     "loading": "Loading...",
     "loading_original": "Loading original photo...",
     "failed": "Failed to load photo. The file is missing or corrupted.",
+    "raw_render_unavailable": "Can't render this RAW; showing embedded preview.",
     "toolbar": {
       "prev": "Previous",
       "next": "Next",
@@ -1254,12 +1255,31 @@
       "show_status_bar": "Show status bar",
       "auto_check_updates": "Auto-check for updates"
     },
+    "raw": {
+      "title": "RAW",
+      "section_pairs": "Paired files",
+      "pair_source": "Default display for pairs",
+      "pair_source_hint": "Used for paired thumbnails and previews.",
+      "pair_jpeg": "JPEG / HEIC",
+      "rawPreviewSource": "Default preview source",
+      "rawRenderBrightness": "Rendering brightness",
+      "option_embedded": "Embedded first",
+      "option_rendered": "Always render RAW",
+      "option_original": "Original exposure",
+      "option_brightened": "Brightened",
+      "brightness_hint": "Applies when rendering RAW, including when an embedded preview is unavailable.",
+      "switch_to": "Switch to {source}",
+      "show_pair": "Show paired {format}",
+      "source_embedded": "Embedded",
+      "source_rendered": "Rendered",
+      "source_brightened": "Brightened",
+      "preview_mode": "RAW preview mode"
+    },
     "browse": {
       "title": "Browse",
       "section_album": "Album",
       "show_subfolder_files": "Show files from subfolders",
       "show_subfolder_files_hint": "Folder view includes files in child folders",
-      "section_file_display": "File display",
       "group_raw_jpeg_pairs": "Group RAW Pairs",
       "group_raw_jpeg_pairs_hint": "Show matching RAW and JPEG/HEIC files as a single item",
       "section_sorting": "Sorting",
@@ -1509,12 +1529,6 @@
       "section_thumbnail_cache": "Thumbnail cache",
       "thumbnail_quality": "Thumbnail quality",
       "thumbnail_quality_hint": "Sets the resolution of generated thumbnails. Higher settings look sharper but take longer to generate and use more disk space",
-      "raw_thumbnail_source": "RAW thumbnail source",
-      "raw_thumbnail_source_hint": "Choose how thumbnails are generated for RAW files",
-      "raw_thumbnail_source_options": [
-        "RAW Rendering (default)",
-        "Embedded preview (faster)"
-      ],
       "section_map": "Map",
       "map_provider": "Map provider",
       "map_provider_hint": "Choose the map service for Map view",

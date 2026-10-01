@@ -101,7 +101,7 @@ export const useConfigStore = defineStore('configStore', {
     libraryChangedVersion: 0,
 
     settings: {
-      tabIndex: 0,               // settings tab index (0: general, 1: browse, 2: grid, 3: viewer, 4: search, 5: advanced, 6: shortcuts, 7: about)
+      tabIndex: 0,               // settings tab index (0: general, 1: browse, 2: grid, 3: viewer, 4: RAW, 5: search, 6: advanced, 7: shortcuts, 8: about)
 
       // general settings
       language: 'en',             // default language
@@ -119,11 +119,15 @@ export const useConfigStore = defineStore('configStore', {
       calendarSort: 0,            // 0=taken asc, 1=taken desc, 2=created asc, 3=created desc, 4=modified asc, 5=modified desc
       categorySort: 0,            // category_sort_options: 0=name asc, 1=name desc, 2=count asc, 3=count desc
       showSubfolderFiles: false,  // show subfolder files (in album folder view)
+
+      // RAW display settings
       groupRawJpegPairs: false,   // group matching RAW and JPEG/HEIC files
+      rawPairDisplaySource: 'jpeg', // jpeg | raw (used when pairs are grouped)
+      rawPreviewSource: 'embedded', // embedded | rendered
+      rawRenderBrightness: 'original', // original | brightened
       
       // grid view settings
       thumbnailSize: 512,         // gallery thumbnail quality: 256, 512, or 1024
-      rawThumbnailSource: 'processed', // processed | embedded
       mapProvider: 'global',      // global | tianditu
       tiandituToken: '',
       mapMarkerSize: 64,          // map photo marker size in px
@@ -283,8 +287,14 @@ export const useConfigStore = defineStore('configStore', {
     setThumbnailSize(thumbnailSize) {
       this.settings.thumbnailSize = thumbnailSize;
     },
-    setRawThumbnailSource(rawThumbnailSource) {
-      this.settings.rawThumbnailSource = rawThumbnailSource === 'embedded' ? 'embedded' : 'processed';
+    setRawPairDisplaySource(source) {
+      this.settings.rawPairDisplaySource = source === 'raw' ? 'raw' : 'jpeg';
+    },
+    setRawPreviewSource(source) {
+      this.settings.rawPreviewSource = source === 'rendered' ? 'rendered' : 'embedded';
+    },
+    setRawRenderBrightness(brightness) {
+      this.settings.rawRenderBrightness = brightness === 'brightened' ? 'brightened' : 'original';
     },
     setMapProvider(mapProvider) {
       this.settings.mapProvider = mapProvider === 'tianditu' ? 'tianditu' : 'global';
@@ -379,5 +389,19 @@ export const useConfigStore = defineStore('configStore', {
     },
 
   },
-  persist: true
+  persist: {
+    serializer: {
+      serialize: JSON.stringify,
+      deserialize: (value) => {
+        const state = JSON.parse(value);
+        const settings = state?.settings;
+        if (settings) {
+          settings.rawPreviewSource = settings.rawPreviewSource === 'rendered' ? 'rendered' : 'embedded';
+          settings.rawRenderBrightness = settings.rawRenderBrightness === 'brightened' ? 'brightened' : 'original';
+          settings.rawPairDisplaySource = settings.rawPairDisplaySource === 'raw' ? 'raw' : 'jpeg';
+        }
+        return state;
+      },
+    },
+  }
 });

@@ -1152,6 +1152,7 @@
     "loading": "Загрузка...",
     "loading_original": "Загрузка исходной фотографии...",
     "failed": "Не удалось загрузить фото. Файл отсутствует или повреждён.",
+    "raw_render_unavailable": "Не удалось отрендерить этот RAW; показан встроенный предпросмотр.",
     "toolbar": {
       "prev": "Пред.",
       "next": "След.",
@@ -1254,12 +1255,31 @@
       "show_status_bar": "Строка состояния",
       "auto_check_updates": "Автоматически проверять обновления"
     },
+    "raw": {
+      "title": "RAW",
+      "section_pairs": "Парные файлы",
+      "pair_source": "Отображение пар по умолчанию",
+      "pair_source_hint": "Используется для парных миниатюр и предпросмотров.",
+      "pair_jpeg": "JPEG / HEIC",
+      "rawPreviewSource": "Источник предпросмотра по умолчанию",
+      "rawRenderBrightness": "Яркость рендеринга",
+      "option_embedded": "Сначала встроенный предпросмотр",
+      "option_rendered": "Всегда рендерить RAW",
+      "brightness_hint": "Применяется при рендеринге RAW, в том числе когда встроенный предпросмотр недоступен.",
+      "switch_to": "Переключить на {source}",
+      "show_pair": "Показать парный {format}",
+      "source_embedded": "Встроенный",
+      "source_rendered": "Рендеринг",
+      "source_brightened": "Осветлённая",
+      "option_original": "Исходная экспозиция",
+      "option_brightened": "Осветлённая",
+      "preview_mode": "Режим предпросмотра RAW"
+    },
     "browse": {
       "title": "Обзор",
       "section_album": "Альбом",
       "show_subfolder_files": "Показывать файлы из подпапок",
       "show_subfolder_files_hint": "При просмотре папок отображаются файлы из вложенных папок",
-      "section_file_display": "Отображение файлов",
       "group_raw_jpeg_pairs": "Группировать RAW-пары",
       "group_raw_jpeg_pairs_hint": "Показывать одноимённые файлы RAW и JPEG/HEIC как один элемент",
       "section_sorting": "Сортировка",
@@ -1509,12 +1529,6 @@
       "section_thumbnail_cache": "Кэш миниатюр",
       "thumbnail_quality": "Качество миниатюр",
       "thumbnail_quality_hint": "Разрешение создаваемых миниатюр (чем выше, тем они чётче, но создаются дольше и занимают больше места на диске)",
-      "raw_thumbnail_source": "Источник миниатюр RAW",
-      "raw_thumbnail_source_hint": "Выберите способ создания миниатюр для RAW-файлов",
-      "raw_thumbnail_source_options": [
-        "Рендеринг RAW (по умолчанию)",
-        "Встроенный предпросмотр (быстрее)"
-      ],
       "section_map": "Карта",
       "map_provider": "Поставщик карт",
       "map_provider_hint": "Выберите картографический сервис для просмотра карты",

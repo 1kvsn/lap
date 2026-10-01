@@ -1152,6 +1152,7 @@
     "loading": "読み込み中...",
     "loading_original": "元写真を読み込み中...",
     "failed": "写真を読み込めませんでした。ファイルが見つからないか、破損しています。",
+    "raw_render_unavailable": "この RAW はレンダリングできません。埋め込みプレビューを表示中。",
     "toolbar": {
       "prev": "前へ",
       "next": "次へ",
@@ -1254,12 +1255,31 @@
       "show_status_bar": "ステータスバー",
       "auto_check_updates": "更新を自動確認"
     },
+    "raw": {
+      "title": "RAW",
+      "section_pairs": "ペアファイル",
+      "pair_source": "ペアの既定の表示",
+      "pair_source_hint": "ペアのサムネイルとプレビューに使用します。",
+      "pair_jpeg": "JPEG / HEIC",
+      "rawPreviewSource": "既定のプレビューソース",
+      "rawRenderBrightness": "レンダリングの明るさ",
+      "option_embedded": "埋め込みプレビューを優先",
+      "option_rendered": "常に RAW をレンダリング",
+      "brightness_hint": "埋め込みプレビューが利用できない場合を含め、RAW のレンダリング時に適用されます。",
+      "switch_to": "{source} に切り替え",
+      "show_pair": "ペアの {format} を表示",
+      "source_embedded": "埋め込み",
+      "source_rendered": "レンダリング",
+      "source_brightened": "明るめ",
+      "option_original": "元の露出",
+      "option_brightened": "明るめ",
+      "preview_mode": "RAW プレビューモード"
+    },
     "browse": {
       "title": "ブラウズ",
       "section_album": "アルバム",
       "show_subfolder_files": "サブフォルダー内のファイルを表示",
       "show_subfolder_files_hint": "フォルダービューに子フォルダー内のファイルを含めます",
-      "section_file_display": "ファイル表示",
       "group_raw_jpeg_pairs": "RAWペアをまとめて表示",
       "group_raw_jpeg_pairs_hint": "一致する RAW と JPEG/HEIC ファイルを 1 つの項目として表示します",
       "section_sorting": "並べ替え",
@@ -1509,12 +1529,6 @@
       "section_thumbnail_cache": "サムネイルキャッシュ",
       "thumbnail_quality": "サムネイル品質",
       "thumbnail_quality_hint": "生成されるサムネイルの解像度を設定します。高い設定ほど鮮明になりますが、生成に時間がかかりディスク容量を多く使用します",
-      "raw_thumbnail_source": "RAWサムネイルのソース",
-      "raw_thumbnail_source_hint": "RAW ファイルのサムネイル生成方法を選択します",
-      "raw_thumbnail_source_options": [
-        "RAW レンダリング（デフォルト）",
-        "埋め込みプレビュー（高速）"
-      ],
       "section_map": "地図",
       "map_provider": "地図サービス",
       "map_provider_hint": "地図ビューで使用する地図サービスを選択します",

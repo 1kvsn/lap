@@ -1152,6 +1152,7 @@
     "loading": "Laden...",
     "loading_original": "Originele foto laden...",
     "failed": "Kan foto niet laden. Het bestand ontbreekt of is beschadigd.",
+    "raw_render_unavailable": "Kan deze RAW niet renderen; ingesloten voorbeeld getoond.",
     "toolbar": {
       "prev": "Vorige",
       "next": "Volgende",
@@ -1254,12 +1255,31 @@
       "show_status_bar": "Statusbalk tonen",
       "auto_check_updates": "Automatisch controleren op updates"
     },
+    "raw": {
+      "title": "RAW",
+      "section_pairs": "Gepaarde bestanden",
+      "pair_source": "Standaardweergave voor paren",
+      "pair_source_hint": "Gebruikt voor gepaarde miniaturen en voorbeelden.",
+      "pair_jpeg": "JPEG / HEIC",
+      "rawPreviewSource": "Standaardvoorbeeldbron",
+      "rawRenderBrightness": "Helderheid bij renderen",
+      "option_embedded": "Ingesloten voorbeeld eerst",
+      "option_rendered": "RAW altijd renderen",
+      "brightness_hint": "Van toepassing bij het renderen van RAW, ook als er geen ingesloten voorbeeld beschikbaar is.",
+      "switch_to": "Overschakelen naar {source}",
+      "show_pair": "Gekoppelde {format} tonen",
+      "source_embedded": "Ingesloten",
+      "source_rendered": "Gerenderd",
+      "source_brightened": "Ophelderd",
+      "option_original": "Originele belichting",
+      "option_brightened": "Ophelderd",
+      "preview_mode": "RAW-voorbeeldmodus"
+    },
     "browse": {
       "title": "Bladeren",
       "section_album": "Album",
       "show_subfolder_files": "Bestanden uit submappen tonen",
       "show_subfolder_files_hint": "De mapweergave toont ook bestanden in onderliggende mappen",
-      "section_file_display": "Bestandsweergave",
       "group_raw_jpeg_pairs": "RAW-paren groeperen",
       "group_raw_jpeg_pairs_hint": "Toon bij elkaar horende RAW- en JPEG/HEIC-bestanden als één item",
       "section_sorting": "Sorteren",
@@ -1509,12 +1529,6 @@
       "section_thumbnail_cache": "Miniaturencache",
       "thumbnail_quality": "Kwaliteit miniaturen",
       "thumbnail_quality_hint": "Bepaalt de resolutie van gegenereerde miniaturen. Hogere instellingen zijn scherper, maar genereren duurt langer en kost meer schijfruimte",
-      "raw_thumbnail_source": "Bron RAW-miniaturen",
-      "raw_thumbnail_source_hint": "Kies hoe miniaturen voor RAW-bestanden worden gegenereerd",
-      "raw_thumbnail_source_options": [
-        "RAW-rendering (standaard)",
-        "Ingesloten voorbeeld (sneller)"
-      ],
       "section_map": "Kaart",
       "map_provider": "Kaartaanbieder",
       "map_provider_hint": "Kies de kaartdienst voor de kaartweergave",

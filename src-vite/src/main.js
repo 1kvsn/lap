@@ -131,9 +131,16 @@ if (isMainWindow) {
   listen('settings-thumbnailSize-changed', (event) => {
     config.setThumbnailSize(event.payload)
   })
-  listen('settings-rawThumbnailSource-changed', (event) => {
-    config.setRawThumbnailSource(event.payload)
+  listen('settings-rawPairDisplaySource-changed', (event) => {
+    config.setRawPairDisplaySource(event.payload)
   })
+  listen('settings-rawPreviewSource-changed', (event) => {
+    config.setRawPreviewSource(event.payload)
+  })
+  listen('settings-rawRenderBrightness-changed', (event) => {
+    config.setRawRenderBrightness(event.payload)
+  })
+
   listen('settings-mapProvider-changed', (event) => {
     config.setMapProvider(event.payload)
   })

@@ -193,7 +193,7 @@ import { useAppUpdater } from '@/common/updater';
 import { useUIStore } from '@/stores/uiStore';
 import { isWin, isMac, isLinux, SCALE_VALUES } from '@/common/utils';
 import { matchesShortcut, ShortcutPlatform } from '@/common/shortcuts';
-import { SIDEBAR } from '@/common/constants';
+import { SIDEBAR, SETTINGS_TAB } from '@/common/constants';
 import { getAppConfig, switchLibrary, cancelIndexing, cancelFaceIndex } from '@/common/api';
 
 // vue components
@@ -453,7 +453,7 @@ onMounted(async () => {
     void clickSettings();
   });
   unlistenOpenAbout = await listen('app-open-about', () => {
-    void clickSettings(7);
+    void clickSettings(SETTINGS_TAB.ABOUT);
   });
 
   appConfig.value = await getAppConfig();

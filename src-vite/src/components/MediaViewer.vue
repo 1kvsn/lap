@@ -359,6 +359,7 @@
           :filePath="file?.file_path"
           :fileId="file?.id"
           :fileType="file?.file_type"
+          :rawPairPath="file?.media_subtype === 'raw_jpeg_pair' ? file?.live_photo_video_path : ''"
           :fileVersion="file?.modified_at || 0"
           :imageWidth="file?.width"
           :imageHeight="file?.height"

@@ -30,6 +30,7 @@ use uuid::Uuid;
 use walkdir::WalkDir;
 
 use crate::{t_jxl, t_libraw, t_utils};
+use crate::t_raw_display::RawDisplayOptions;
 
 #[derive(Default)]
 pub struct CaptureSettings {
@@ -588,7 +589,7 @@ pub fn generate_directory_thumbnails(
 
             let orientation = get_image_orientation(&path_str);
             let thumb = if file_type == 3 {
-                get_raw_thumbnail(&path_str, orientation, thumbnail_size, false)
+                get_raw_thumbnail(&path_str, orientation, thumbnail_size, RawDisplayOptions::rendered_bright())
             } else {
                 get_image_thumbnail(&path_str, orientation, thumbnail_size)
             };
@@ -633,7 +634,7 @@ pub fn get_image_thumbnail(
     }
 
     if crate::t_libraw::is_tiff_path(file_path) {
-        if let Ok(Some(data)) = crate::t_libraw::get_raw_thumbnail(file_path, thumbnail_size, false) {
+        if let Ok(Some(data)) = crate::t_libraw::get_raw_thumbnail(file_path, thumbnail_size, RawDisplayOptions::rendered_bright()) {
             return Ok(Some(data));
         }
     }
@@ -732,7 +733,7 @@ fn select_embedded_jpeg_for_thumbnail(
 
 pub fn get_raw_preview_image(
     file_path: &str,
-    prefer_embedded_jpeg: bool,
+    prefer_embedded_jpeg: RawDisplayOptions,
 ) -> Result<Option<Vec<u8>>, String> {
     if let Ok(Some(data)) = t_libraw::get_raw_preview_image(file_path, prefer_embedded_jpeg) {
         return Ok(Some(data));
@@ -799,7 +800,7 @@ pub fn get_raw_thumbnail(
     file_path: &str,
     orientation: i32,
     thumbnail_size: u32,
-    prefer_embedded_jpeg: bool,
+    prefer_embedded_jpeg: RawDisplayOptions,
 ) -> Result<Option<Vec<u8>>, String> {
     if let Ok(Some(data)) = t_libraw::get_raw_thumbnail(
         file_path,
@@ -1242,11 +1243,11 @@ fn should_generate_preview_for_file(file_path: &str, file_type: i64) -> bool {
         || is_avif_path(file_path)
 }
 
-async fn get_generated_preview_bytes(file_path: &str) -> Result<Option<Vec<u8>>, String> {
+pub(crate) async fn get_generated_preview_bytes(file_path: &str) -> Result<Option<Vec<u8>>, String> {
     let file_type = t_utils::get_file_type(file_path).unwrap_or(0);
 
     if file_type == 3 {
-        return get_raw_preview_image(file_path, false);
+        return get_raw_preview_image(file_path, RawDisplayOptions::rendered_bright());
     }
 
     if t_jxl::is_jxl_path(file_path) {
@@ -1254,7 +1255,7 @@ async fn get_generated_preview_bytes(file_path: &str) -> Result<Option<Vec<u8>>,
     }
 
     if crate::t_libraw::is_tiff_path(file_path) {
-        return match get_raw_preview_image(file_path, false) {
+        return match get_raw_preview_image(file_path, RawDisplayOptions::rendered_bright()) {
             Ok(Some(data)) => Ok(Some(data)),
             _ => {
                 #[cfg(target_os = "macos")]
@@ -1658,7 +1659,7 @@ const FILE_IMAGE_RESULT_CACHE_MAX: usize = 8;
 #[derive(Clone)]
 struct FileImageCacheEntry {
     signature: (u64, u128),
-    prefer_embedded_raw_preview: bool,
+    prefer_embedded_raw_preview: RawDisplayOptions,
     data: Vec<u8>,
 }
 
@@ -1679,7 +1680,7 @@ impl FileImageResultCache {
         &mut self,
         file_path: &str,
         signature: (u64, u128),
-        prefer_embedded_raw_preview: bool,
+        prefer_embedded_raw_preview: RawDisplayOptions,
     ) -> Option<Vec<u8>> {
         let entry = self.entries.get(file_path)?;
         if entry.signature != signature
@@ -1699,7 +1700,7 @@ impl FileImageResultCache {
         &mut self,
         file_path: String,
         signature: (u64, u128),
-        prefer_embedded_raw_preview: bool,
+        prefer_embedded_raw_preview: RawDisplayOptions,
         data: Vec<u8>,
     ) {
         self.entries.insert(
@@ -1738,7 +1739,7 @@ fn get_file_signature(file_path: &str) -> Result<(u64, u128), String> {
 
 pub async fn get_file_image_bytes_cached(
     file_path: &str,
-    prefer_embedded_raw_preview: bool,
+    prefer_embedded_raw_preview: RawDisplayOptions,
 ) -> Result<Vec<u8>, String> {
     let file_type = t_utils::get_file_type(file_path).unwrap_or(0);
     let cache_signature = if should_generate_preview_for_file(file_path, file_type) {
@@ -1777,7 +1778,7 @@ pub async fn get_file_image_bytes_cached(
         get_image_thumbnail(file_path, get_image_orientation(file_path), 4096)?
             .ok_or_else(|| format!("Failed to resolve AVIF preview image: {}", file_path))?
     } else if crate::t_libraw::is_tiff_path(file_path) {
-        match get_raw_preview_image(file_path, false) {
+        match get_raw_preview_image(file_path, RawDisplayOptions::rendered_bright()) {
             Ok(Some(data)) => data,
             _ => tokio::fs::read(file_path)
                 .await
@@ -1801,4 +1802,52 @@ pub async fn get_file_image_bytes_cached(
     }
 
     Ok(image_data)
+}
+
+fn get_raw_preview_with_source(path: &str, options: RawDisplayOptions) -> Result<RawPreviewResult, String> {
+    if options.embedded() {
+        if let Ok(Some(data)) = t_libraw::get_embedded_raw_preview_image(path) {
+            return Ok((data, "embedded", false));
+        }
+        // Some cameras expose previews that LibRaw cannot extract. Preserve the
+        // existing JPEG extraction fallback, with accurate source metadata.
+        if let Ok(Some(preview)) = select_embedded_jpeg_for_preview(path) {
+            if let Ok(image) = image::load_from_memory(&preview.data) {
+                let image = apply_orientation(image, preview.orientation);
+                let data = crate::t_jpeg::encode_rgb8(&image.to_rgb8(), 85).map_err(|e| e.to_string())?;
+                return Ok((data, "embedded", false));
+            }
+        }
+    }
+    let (data, source, _) = t_libraw::get_raw_preview_with_source(path, RawDisplayOptions {
+        mode: crate::t_raw_display::RawPreviewMode::Rendered,
+        ..options
+    })?;
+    Ok((data, source, options.embedded()))
+}
+
+// Keep decoder work off the async runtime and bound concurrent full RAW previews.
+type RawPreviewResult = (Vec<u8>, &'static str, bool);
+static RAW_PREVIEW_CACHE: Lazy<Mutex<VecDeque<(String, (u64, u128), RawDisplayOptions, RawPreviewResult)>>> = Lazy::new(|| Mutex::new(VecDeque::new()));
+static RAW_PREVIEW_PERMITS: Lazy<std::sync::Arc<tokio::sync::Semaphore>> = Lazy::new(|| std::sync::Arc::new(tokio::sync::Semaphore::new(2)));
+
+pub async fn get_raw_preview_cached(path: &str, options: RawDisplayOptions) -> Result<RawPreviewResult, String> {
+    let permit = RAW_PREVIEW_PERMITS.clone().acquire_owned().await.map_err(|e| e.to_string())?;
+    let path = path.to_string();
+    tauri::async_runtime::spawn_blocking(move || {
+        let _permit = permit;
+        let signature = get_file_signature(&path)?;
+        if let Ok(cache) = RAW_PREVIEW_CACHE.lock() {
+            if let Some(entry) = cache.iter().find(|entry| entry.0 == path && entry.1 == signature && entry.2 == options) {
+                return Ok(entry.3.clone());
+            }
+        }
+        let result = get_raw_preview_with_source(&path, options)?;
+        if let Ok(mut cache) = RAW_PREVIEW_CACHE.lock() {
+            cache.retain(|entry| entry.0 != path || (entry.1 == signature && entry.2 != options));
+            cache.push_back((path, signature, options, result.clone()));
+            while cache.len() > 4 { cache.pop_front(); }
+        }
+        Ok(result)
+    }).await.map_err(|e| e.to_string())?
 }

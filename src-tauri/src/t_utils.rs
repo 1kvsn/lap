@@ -7,6 +7,7 @@
 use crate::t_common;
 use crate::t_apple_sidecar;
 use crate::t_sqlite::{AFile, AFolder, AThumb, Album, FolderScanState, FolderSubfolderState};
+use crate::t_raw_display::RawDisplayOptions;
 use chrono::{DateTime, Local, TimeZone, Utc};
 use once_cell::sync::Lazy;
 use pinyin::ToPinyin;
@@ -2903,7 +2904,7 @@ fn schedule_synced_file_processing(app_handle: tauri::AppHandle, task: SyncedFil
                 file_type,
                 orientation,
                 FOLDER_SYNC_THUMBNAIL_SIZE,
-                false,
+                RawDisplayOptions::rendered_bright(),
                 false,
                 None,
                 None,
@@ -3521,7 +3522,7 @@ struct ThumbnailTask {
     file_type: i64,
     orientation: i32,
     thumbnail_size: u32,
-    prefer_embedded_raw_thumbnail: bool,
+    prefer_embedded_raw_thumbnail: RawDisplayOptions,
     file_size: u64,
     duration: Option<u64>,
     is_heavy: bool,
@@ -3732,7 +3733,7 @@ fn index_single_file(
     path_str: &str,
     ftype: i64,
     thumbnail_size: u32,
-    prefer_embedded_raw_thumbnail: bool,
+    prefer_embedded_raw_thumbnail: RawDisplayOptions,
     last_scan_time: i64,
     small_image_filter: i64,
 ) -> Option<FileIndexOutcome> {
@@ -3940,7 +3941,7 @@ pub async fn index_album_worker(
     cancellation_token: Arc<Mutex<HashMap<i64, bool>>>,
     album_id: i64,
     thumbnail_size: u32,
-    prefer_embedded_raw_thumbnail: bool,
+    prefer_embedded_raw_thumbnail: RawDisplayOptions,
     skip_file_path: Option<String>,
     group_raw_jpeg_pairs: bool,
 ) -> Result<(), String> {

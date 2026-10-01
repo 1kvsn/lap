@@ -22,6 +22,7 @@ use crate::t_sqlite::{
 use crate::t_storage;
 use crate::t_utils;
 use crate::{t_ai, t_common, t_sqlite};
+use crate::t_raw_display::RawDisplayOptions;
 
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
@@ -32,9 +33,30 @@ use std::process::Command;
 use std::sync::{Arc, Mutex};
 use tauri::{AppHandle, Emitter, State};
 
-// Serialize a scoped metadata refresh with library switching. A refresh may
-// open several connections, all of which must resolve to the same library.
+// Scoped refreshes and RAW thumbnail requests can open several connections.
+// Keep their library stable until all reads and writes have completed.
 static FILE_REFRESH_LIBRARY_LOCK: Mutex<()> = Mutex::new(());
+
+fn with_library_context<T>(
+    lock: &Mutex<()>,
+    library_id: &str,
+    current_library: impl FnOnce() -> Result<String, String>,
+    operation: impl FnOnce() -> Result<T, String>,
+) -> Result<T, String> {
+    let _guard = lock.lock().map_err(|e| e.to_string())?;
+    if current_library()? != library_id {
+        return Err("Library changed".to_string());
+    }
+    operation()
+}
+
+pub(crate) fn with_current_library<T>(
+    library_id: &str,
+    operation: impl FnOnce() -> Result<T, String>,
+) -> Result<T, String> {
+    with_library_context(&FILE_REFRESH_LIBRARY_LOCK, library_id,
+        || Ok(t_config::load_app_config()?.current_library_id), operation)
+}
 
 // cancellation token for indexing
 pub struct IndexCancellation(pub Arc<Mutex<HashMap<i64, bool>>>);
@@ -633,7 +655,7 @@ pub fn index_album(
     state: State<IndexCancellation>,
     album_id: i64,
     thumbnail_size: u32,
-    raw_thumbnail_source: String,
+    raw_display_options: RawDisplayOptions,
     skip_file_path: Option<String>,
     group_raw_jpeg_pairs: bool,
 ) -> Result<(), String> {
@@ -647,7 +669,7 @@ pub fn index_album(
             cancellation_token,
             album_id,
             thumbnail_size,
-            raw_thumbnail_source == "embedded",
+            raw_display_options,
             skip_file_path,
             group_raw_jpeg_pairs,
         )
@@ -2465,7 +2487,7 @@ pub async fn get_file_thumb(
     file_type: i64,
     orientation: i32,
     thumbnail_size: u32,
-    raw_thumbnail_source: String,
+    raw_display_options: RawDisplayOptions,
     force_regenerate: bool,
     thumbnail_seek_percent: Option<u8>,
 ) -> Result<Option<AThumb>, String> {
@@ -2474,7 +2496,7 @@ pub async fn get_file_thumb(
         file_path,
         thumbnail_size,
         orientation,
-        raw_thumbnail_source == "embedded",
+        raw_display_options,
         force_regenerate,
     )
     .map_err(|e| format!("Error while getting thumbnail: {}", e))?
@@ -2494,7 +2516,7 @@ pub async fn get_file_thumb(
         file_type,
         orientation,
         thumbnail_size,
-        raw_thumbnail_source == "embedded",
+        raw_display_options,
         album_id,
         force_regenerate,
         thumbnail_seek_percent,
@@ -2509,7 +2531,7 @@ pub async fn get_file_thumb_by_id(
     app_handle: tauri::AppHandle,
     file_id: i64,
     thumbnail_size: u32,
-    raw_thumbnail_source: String,
+    raw_display_options: RawDisplayOptions,
     force_regenerate: bool,
 ) -> Result<Option<AThumb>, String> {
     let Some(file) = AFile::get_file_info(file_id)
@@ -2530,7 +2552,7 @@ pub async fn get_file_thumb_by_id(
         &file_path,
         thumbnail_size,
         orientation,
-        raw_thumbnail_source == "embedded",
+        raw_display_options,
         force_regenerate,
     )
     .map_err(|e| format!("Error while getting thumbnail: {}", e))?
@@ -2545,7 +2567,7 @@ pub async fn get_file_thumb_by_id(
         file_type,
         orientation,
         thumbnail_size,
-        raw_thumbnail_source == "embedded",
+        raw_display_options,
         file.album_id.unwrap_or(0),
         force_regenerate,
         None,
@@ -2560,7 +2582,7 @@ pub async fn get_file_thumbs(
     app_handle: tauri::AppHandle,
     files: Vec<ThumbRequest>,
     thumbnail_size: u32,
-    raw_thumbnail_source: String,
+    raw_display_options: RawDisplayOptions,
     force_regenerate: bool,
     trust_cached: bool,
 ) -> Result<Vec<Option<AThumb>>, String> {
@@ -2622,7 +2644,7 @@ pub async fn get_file_thumbs(
                 &file_path,
                 thumbnail_size,
                 orientation,
-                raw_thumbnail_source == "embedded",
+                raw_display_options,
                 force_regenerate,
                 trust_cached,
             )
@@ -2640,7 +2662,7 @@ pub async fn get_file_thumbs(
             file_type,
             orientation,
             thumbnail_size,
-            raw_thumbnail_source == "embedded",
+            raw_display_options,
             album_id,
             force_regenerate,
             None,
@@ -3442,4 +3464,48 @@ pub fn restore_databases(
     selections: Vec<t_storage::RestoreSelection>,
 ) -> Result<t_storage::RestoreResult, String> {
     t_storage::restore_databases(&backup_path, &selections)
+}
+
+#[cfg(test)]
+mod raw_display_library_tests {
+    use super::with_library_context;
+    use std::sync::{Arc, Mutex, TryLockError, mpsc};
+
+    #[test]
+    fn raw_display_rejects_queued_work_after_library_switch() {
+        let lock = Mutex::new(());
+        let mut ran = false;
+        let result = with_library_context(&lock, "library-a", || Ok("library-b".into()), || {
+            ran = true;
+            Ok(())
+        });
+        assert_eq!(result.unwrap_err(), "Library changed");
+        assert!(!ran, "stale requests must not read or write the new database");
+    }
+
+    #[test]
+    fn raw_display_keeps_library_locked_through_cache_write() {
+        let lock = Arc::new(Mutex::new(()));
+        let current = Arc::new(Mutex::new("library-a".to_string()));
+        let (started_tx, started_rx) = mpsc::channel();
+        let (release_tx, release_rx) = mpsc::channel();
+        let worker_lock = lock.clone();
+        let worker_current = current.clone();
+        let worker = std::thread::spawn(move || {
+            with_library_context(&worker_lock, "library-a", || Ok(worker_current.lock().unwrap().clone()), || {
+                started_tx.send(()).unwrap();
+                release_rx.recv().unwrap();
+                assert_eq!(*worker_current.lock().unwrap(), "library-a");
+                Ok(())
+            })
+        });
+        started_rx.recv().unwrap();
+        assert!(matches!(lock.try_lock(), Err(TryLockError::WouldBlock)));
+        release_tx.send(()).unwrap();
+        worker.join().unwrap().unwrap();
+        let guard = lock.lock().unwrap();
+        *current.lock().unwrap() = "library-b".into();
+        drop(guard);
+        assert!(with_library_context(&lock, "library-a", || Ok(current.lock().unwrap().clone()), || Ok(())).is_err());
+    }
 }

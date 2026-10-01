@@ -1152,6 +1152,7 @@
     "loading": "Chargement...",
     "loading_original": "Chargement de la photo originale...",
     "failed": "Impossible de charger la photo. Le fichier est manquant ou corrompu.",
+    "raw_render_unavailable": "Impossible de rendre ce RAW ; aperçu intégré affiché.",
     "toolbar": {
       "prev": "Précédent",
       "next": "Suivant",
@@ -1254,12 +1255,31 @@
       "show_status_bar": "Barre d'état",
       "auto_check_updates": "Rechercher automatiquement les mises à jour"
     },
+    "raw": {
+      "title": "RAW",
+      "section_pairs": "Fichiers appariés",
+      "pair_source": "Affichage par défaut des paires",
+      "pair_source_hint": "Utilisé pour les miniatures et aperçus appariés.",
+      "pair_jpeg": "JPEG / HEIC",
+      "rawPreviewSource": "Source d’aperçu par défaut",
+      "rawRenderBrightness": "Luminosité du rendu",
+      "option_embedded": "Privilégier l’aperçu intégré",
+      "option_rendered": "Toujours rendre le RAW",
+      "brightness_hint": "S’applique au rendu RAW, y compris lorsque l’aperçu intégré est indisponible.",
+      "switch_to": "Passer à {source}",
+      "show_pair": "Afficher le {format} associé",
+      "source_embedded": "Intégré",
+      "source_rendered": "Rendu",
+      "source_brightened": "Éclaircie",
+      "option_original": "Exposition d’origine",
+      "option_brightened": "Éclaircie",
+      "preview_mode": "Mode d'aperçu RAW"
+    },
     "browse": {
       "title": "Parcourir",
       "section_album": "Album",
       "show_subfolder_files": "Afficher les fichiers des sous-dossiers",
       "show_subfolder_files_hint": "La vue dossier inclut les fichiers des sous-dossiers",
-      "section_file_display": "Affichage des fichiers",
       "group_raw_jpeg_pairs": "Regrouper les paires RAW",
       "group_raw_jpeg_pairs_hint": "Afficher les fichiers RAW et JPEG/HEIC correspondants comme un seul élément",
       "section_sorting": "Tri",
@@ -1509,12 +1529,6 @@
       "section_thumbnail_cache": "Cache des miniatures",
       "thumbnail_quality": "Qualité des miniatures",
       "thumbnail_quality_hint": "Définit la résolution des miniatures générées. Des réglages plus élevés offrent un aperçu plus net, mais nécessitent plus de temps de génération et d’espace disque",
-      "raw_thumbnail_source": "Source des miniatures RAW",
-      "raw_thumbnail_source_hint": "Choisissez comment les miniatures des fichiers RAW sont générées",
-      "raw_thumbnail_source_options": [
-        "Rendu RAW (par défaut)",
-        "Aperçu intégré (plus rapide)"
-      ],
       "section_map": "Carte",
       "map_provider": "Fournisseur de cartes",
       "map_provider_hint": "Choisissez le service de cartes pour la vue Carte",

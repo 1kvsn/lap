@@ -1152,6 +1152,7 @@
     "loading": "Cargando...",
     "loading_original": "Cargando foto original...",
     "failed": "No se pudo cargar la foto. El archivo falta o está dañado.",
+    "raw_render_unavailable": "No se puede renderizar este RAW; se muestra la vista previa incrustada.",
     "toolbar": {
       "prev": "Anterior",
       "next": "Siguiente",
@@ -1254,12 +1255,31 @@
       "show_status_bar": "Mostrar barra estado",
       "auto_check_updates": "Buscar actualizaciones automáticamente"
     },
+    "raw": {
+      "title": "RAW",
+      "section_pairs": "Archivos emparejados",
+      "pair_source": "Visualización predeterminada de los pares",
+      "pair_source_hint": "Se usa para las miniaturas y vistas previas emparejadas.",
+      "pair_jpeg": "JPEG / HEIC",
+      "rawPreviewSource": "Fuente de vista previa predeterminada",
+      "rawRenderBrightness": "Brillo de renderizado",
+      "option_embedded": "Preferir vista previa incrustada",
+      "option_rendered": "Renderizar RAW siempre",
+      "brightness_hint": "Se aplica al renderizar RAW, incluso si no hay una vista previa incrustada disponible.",
+      "switch_to": "Cambiar a {source}",
+      "show_pair": "Mostrar {format} emparejado",
+      "source_embedded": "Incrustada",
+      "source_rendered": "Renderizada",
+      "source_brightened": "Aclarada",
+      "option_original": "Exposición original",
+      "option_brightened": "Aclarada",
+      "preview_mode": "Modo de vista previa RAW"
+    },
     "browse": {
       "title": "Explorar",
       "section_album": "Álbum",
       "show_subfolder_files": "Mostrar archivos de subcarpetas",
       "show_subfolder_files_hint": "La vista de carpeta incluye archivos de carpetas secundarias",
-      "section_file_display": "Visualización de archivos",
       "group_raw_jpeg_pairs": "Agrupar pares RAW",
       "group_raw_jpeg_pairs_hint": "Mostrar archivos RAW y JPEG/HEIC coincidentes como un solo elemento",
       "section_sorting": "Orden",
@@ -1509,12 +1529,6 @@
       "section_thumbnail_cache": "Caché de miniaturas",
       "thumbnail_quality": "Calidad de miniaturas",
       "thumbnail_quality_hint": "Establece la resolución de las miniaturas generadas. Los ajustes más altos se ven más nítidos, pero tardan más en generarse y usan más espacio en disco",
-      "raw_thumbnail_source": "Fuente de miniaturas RAW",
-      "raw_thumbnail_source_hint": "Elige cómo se generan las miniaturas de archivos RAW",
-      "raw_thumbnail_source_options": [
-        "Renderizado RAW (predeterminado)",
-        "Vista previa incrustada (más rápida)"
-      ],
       "section_map": "Mapa",
       "map_provider": "Proveedor de mapas",
       "map_provider_hint": "Elige el servicio de mapas para la vista de mapa",

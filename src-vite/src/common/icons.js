@@ -113,6 +113,7 @@ export { default as IconOk } from '@/assets/icons/ok.svg';
 export { default as IconOrder } from '@/assets/icons/order.svg';
 export { default as IconPrint } from '@/assets/icons/print.svg';
 export { default as IconRefresh } from '@/assets/icons/refresh.svg';
+export { default as IconRepeat } from '@/assets/icons/repeat.svg';
 export { default as IconRemove } from '@/assets/icons/minus.svg';
 export { default as IconSave } from '@/assets/icons/save.svg';
 export { default as IconSearch } from '@/assets/icons/search.svg';

@@ -5490,6 +5490,13 @@ onMounted( async() => {
       file_ids.map((id: any) => Number(id)).filter((id: number) => Number.isFinite(id) && id > 0)
     );
     if (readyIds.size === 0) return;
+    // A companion edit changes the grouped RAW display even though its own
+    // modified_at timestamp and logical selection ID remain unchanged.
+    for (const file of fileList.value) {
+      if (file.media_subtype === 'raw_jpeg_pair' && readyIds.has(Number(file.live_photo_video_id))) {
+        readyIds.add(Number(file.id));
+      }
+    }
 
     // A normal scan emits this event when the thumbnail first becomes ready.
     // The streaming list is already fetching that image, so clearing it here
@@ -5498,7 +5505,7 @@ onMounted( async() => {
     if (!invalidate) {
       if (fileList.value.length === 0) return;
       const missingFiles = fileList.value.filter(
-        (file: any) => file && !file.isPlaceholder && !file.thumbnail && readyIds.has(Number(file.id || 0))
+        (file: any) => file && !file.isPlaceholder && (!file.thumbnail || file.rawThumbnailStale) && readyIds.has(Number(file.id || 0))
       );
       if (missingFiles.length > 0) getFileListThumb(missingFiles);
       return;
@@ -5680,6 +5687,21 @@ onBeforeUnmount(() => {
 });
 
 /// watch appearance
+watch(
+  () => [config.settings.rawPreviewSource, config.settings.rawRenderBrightness, config.settings.rawPairDisplaySource, config.settings.groupRawJpegPairs],
+  () => {
+    currentThumbRequestId++;
+    for (const file of fileList.value) {
+      if (Number(file.file_type) === 3) {
+        clearCachedThumbnailDataUrl(file.id, config.settings.thumbnailSize);
+        file.rawThumbnailStale = true;
+      }
+    }
+    const start = Math.max(0, lastVisibleRange.start);
+    void fetchMissingVisibleThumbnails(start, Math.max(start + 40, lastVisibleRange.end));
+  },
+);
+
 watch(() => config.settings.appearance, (newAppearance) => {
   setTheme(newAppearance, newAppearance === 0 ? config.settings.lightTheme : config.settings.darkTheme);
 });
@@ -6613,7 +6635,7 @@ async function fetchMissingVisibleThumbnails(startIndex: number, endIndex: numbe
   const files = rows
     .map((row: any) => isItemRow(row) ? row.file : row)
     .filter((file: any) => {
-      if (!isRealFileItem(file) || file.thumbnail) return false;
+      if (!isRealFileItem(file) || (file.thumbnail && !file.rawThumbnailStale)) return false;
       const fileId = Number(file.id || 0);
       if (fileId <= 0 || seen.has(fileId)) return false;
       seen.add(fileId);
@@ -8897,7 +8919,9 @@ const updateThumbForFile = async (file: any) => {
   if (thumb) {
     if (thumb.error_code === 0 || thumb.error_code === 2) {
       file.thumbnail = getThumbnailDataUrl(thumb, thumbnailPlaceholder, true, config.settings.thumbnailSize, file.file_path, Number(file.modified_at || 0));
+      file.rawThumbnailStale = false;
     } else if (thumb.error_code === 1) {
+      file.rawThumbnailStale = false;
       file.thumbnail = thumbnailPlaceholder;
     }
   }
@@ -9992,7 +10016,9 @@ async function getFileListThumb(files: any[], offset = 0, concurrencyLimit = 4, 
 
     if (thumb.error_code === 0 || thumb.error_code === 2) {
       file.thumbnail = getThumbnailDataUrl(thumb, thumbnailPlaceholder, bustCache, thumbnailSize, file.file_path, Number(file.modified_at || 0));
+      file.rawThumbnailStale = false;
     } else if (thumb.error_code === 1) {
+      file.rawThumbnailStale = false;
       file.thumbnail = thumbnailPlaceholder;
     }
   };
@@ -10005,11 +10031,12 @@ async function getFileListThumb(files: any[], offset = 0, concurrencyLimit = 4, 
 
     for (let i = startIndex; i < endIndex; i++) {
       const file = files[i];
-      if (!file || file.thumbnail) continue;
+      if (!file || (file.thumbnail && !file.rawThumbnailStale)) continue;
 
       const cached = getCachedThumbnailDataUrl(file.id, thumbnailSize);
       if (cached) {
         file.thumbnail = cached;
+        file.rawThumbnailStale = false;
         continue;
       }
 
@@ -10343,7 +10370,6 @@ async function printImage(index: number) {
         selectedFile.file_path,
         false,
         Number(selectedFile.modified_at || 0),
-        config.settings.rawThumbnailSource,
       )
       : getAssetSrc(selectedFile.file_path, Number(selectedFile.modified_at || 0));
     await waitForPrintImage();

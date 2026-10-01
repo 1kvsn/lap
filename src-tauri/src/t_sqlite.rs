@@ -14,6 +14,7 @@ use crate::t_libraw;
 use crate::t_storage;
 use crate::t_utils;
 use crate::t_video;
+use crate::t_raw_display::RawDisplayOptions;
 use base64::{Engine, engine::general_purpose};
 use chrono::{Datelike, TimeZone};
 use exif::{In, Tag, Value};
@@ -81,7 +82,7 @@ fn thumb_background_tasks() -> &'static Mutex<HashSet<String>> {
     THUMB_BACKGROUND_TASKS.get_or_init(|| Mutex::new(HashSet::new()))
 }
 
-fn thumb_background_generation_permits() -> Arc<Semaphore> {
+pub(crate) fn thumb_background_generation_permits() -> Arc<Semaphore> {
     THUMB_BACKGROUND_GENERATION_PERMITS
         .get_or_init(|| Arc::new(Semaphore::new(MAX_BACKGROUND_THUMB_GENERATIONS)))
         .clone()
@@ -6788,22 +6789,33 @@ impl AThumb {
         thumbnail_size: u32,
         source_mtime: Option<i64>,
         orientation: i32,
-        raw_thumbnail_source: Option<bool>,
+        raw_thumbnail_source: Option<RawDisplayOptions>,
     ) -> String {
         let mut hasher = blake3::Hasher::new();
         hasher.update(b"lap-thumb-v1");
         hasher.update(library_id.as_bytes());
         hasher.update(&file_id.to_le_bytes());
         hasher.update(&thumbnail_size.to_le_bytes());
+        let orientation = if raw_thumbnail_source.is_some() && orientation == 0 { 1 } else { orientation };
         hasher.update(&orientation.to_le_bytes());
         hasher.update(&source_mtime.unwrap_or_default().to_le_bytes());
         if let Some(prefer_embedded) = raw_thumbnail_source {
-            hasher.update(if prefer_embedded { b"raw-embedded" } else { b"raw-rendered" });
+            hasher.update(prefer_embedded.cache_tag().as_bytes());
+            if let Some(companion) = crate::t_raw_display::paired_file(file_id, prefer_embedded) {
+                hasher.update(&companion.id.unwrap_or_default().to_le_bytes());
+                if let Some(path) = companion.file_path.as_deref() {
+                    hasher.update(path.as_bytes());
+                    if let Ok(metadata) = fs::metadata(path) {
+                        hasher.update(&metadata.len().to_le_bytes());
+                        let modified = metadata.modified().ok().and_then(|time| time.duration_since(UNIX_EPOCH).ok());
+                        hasher.update(&modified.map(|time| time.as_nanos()).unwrap_or_default().to_le_bytes());
+                    }
+                }
+            }
         }
         let hash = hasher.finalize().to_hex().to_string();
         match raw_thumbnail_source {
-            Some(true) => format!("e{}", hash),
-            Some(false) => format!("r{}", hash),
+            Some(options) => format!("{}{}", if options.embedded() { if options.auto_bright { 'b' } else { 'e' } } else if options.auto_bright { 'a' } else { 'r' }, hash),
             None => hash,
         }
     }
@@ -7091,11 +7103,29 @@ impl AThumb {
         file_type: i64,
         orientation: i32,
         thumbnail_size: u32,
-        prefer_embedded_raw_thumbnail: bool,
+        prefer_embedded_raw_thumbnail: RawDisplayOptions,
         library_id: &str,
         known_duration: Option<u64>,
         seek_percent: Option<u8>,
     ) -> Result<Option<Self>, String> {
+        if file_type == 3 {
+            if let Some(companion) = crate::t_raw_display::paired_file(file_id, prefer_embedded_raw_thumbnail) {
+                if let (Some(companion_id), Some(path)) = (companion.id, companion.file_path.as_deref()) {
+                    if let Ok(Some(mut thumb)) = Self::new_for_library(
+                        companion_id, path, 1, companion.e_orientation.unwrap_or(1) as i32,
+                        thumbnail_size, RawDisplayOptions::default(), library_id, None, None,
+                    ) {
+                        if thumb.error_code == 0 && thumb.thumb_data.is_some() {
+                            thumb.file_id = file_id;
+                            thumb.thumb_mtime = Self::get_source_mtime(file_path);
+                            thumb.thumb_key = Some(Self::build_thumb_key(library_id, file_id, thumbnail_size,
+                                thumb.thumb_mtime, orientation, Some(prefer_embedded_raw_thumbnail)));
+                            return Ok(Some(thumb));
+                        }
+                    }
+                }
+            }
+        }
         let (thumb_data, error_code) = match file_type {
             1 => {
                 // image
@@ -7161,7 +7191,9 @@ impl AThumb {
         };
 
         let thumb_mtime = Self::get_source_mtime(file_path);
-        let thumb_key = thumb_data.as_ref().map(|_| {
+        // Retain the policy key on RAW failures too, so another policy retries
+        // while repeated requests for the same broken source remain cached.
+        let thumb_key = (file_type == 3 || thumb_data.is_some()).then(|| {
             Self::build_thumb_key(
                 library_id,
                 file_id,
@@ -7333,6 +7365,18 @@ impl AThumb {
         Ok(thumbs)
     }
 
+    fn raw_display_is_stale(&self, file_path: &str, orientation: i32, options: RawDisplayOptions) -> bool {
+        if t_utils::get_file_type(file_path) != Some(3) {
+            return false;
+        }
+        // Preserve offline-library thumbnails; regenerate once the source returns.
+        if !std::path::Path::new(file_path).is_file() { return false; }
+        let key = Self::build_thumb_key(&Self::get_current_library_id(), self.file_id,
+            self.thumb_size.unwrap_or(512).max(1) as u32, Self::get_source_mtime(file_path),
+            orientation, Some(options));
+        self.thumb_key.as_deref() != Some(key.as_str())
+    }
+
     fn is_stale(&self, file_path: &str, _thumbnail_size: u32) -> bool {
         // A quality setting change must not invalidate the existing cache while
         // browsing. Explicit refresh actions regenerate at the requested size.
@@ -7351,7 +7395,7 @@ impl AThumb {
     pub fn needs_thumbnail_regeneration(
         file_id: i64,
         thumbnail_size: u32,
-        prefer_embedded_raw_thumbnail: bool,
+        prefer_embedded_raw_thumbnail: RawDisplayOptions,
     ) -> bool {
         Self::fetch(file_id)
             .ok()
@@ -7485,7 +7529,7 @@ impl AThumb {
         file_type: i64,
         orientation: i32,
         thumbnail_size: u32,
-        prefer_embedded_raw_thumbnail: bool,
+        prefer_embedded_raw_thumbnail: RawDisplayOptions,
         library_id: &str,
         known_duration: Option<u64>,
         seek_percent: Option<u8>,
@@ -7551,7 +7595,7 @@ impl AThumb {
         file_type: i64,
         orientation: i32,
         thumbnail_size: u32,
-        prefer_embedded_raw_thumbnail: bool,
+        prefer_embedded_raw_thumbnail: RawDisplayOptions,
         known_duration: Option<u64>,
         seek_percent: Option<u8>,
     ) -> Result<Option<Self>, String> {
@@ -7574,7 +7618,7 @@ impl AThumb {
         file_path: &str,
         thumbnail_size: u32,
         orientation: i32,
-        _prefer_embedded_raw_thumbnail: bool,
+        prefer_embedded_raw_thumbnail: RawDisplayOptions,
         force_regenerate: bool,
     ) -> Result<Option<Self>, String> {
         if force_regenerate {
@@ -7583,6 +7627,10 @@ impl AThumb {
         }
 
         if let Ok(Some(thumbnail)) = Self::fetch(file_id) {
+            if thumbnail.raw_display_is_stale(file_path, orientation, prefer_embedded_raw_thumbnail) {
+                let _ = Self::delete(file_id);
+                return Ok(None);
+            }
             if thumbnail.error_code == 1 {
                 if thumbnail.is_stale(file_path, thumbnail_size) {
                     let _ = Self::delete(file_id);
@@ -7616,7 +7664,7 @@ impl AThumb {
         file_path: &str,
         thumbnail_size: u32,
         orientation: i32,
-        _prefer_embedded_raw_thumbnail: bool,
+        prefer_embedded_raw_thumbnail: RawDisplayOptions,
         force_regenerate: bool,
         trust_cached: bool,
     ) -> Result<Option<Self>, String> {
@@ -7625,6 +7673,10 @@ impl AThumb {
             return Ok(None);
         }
 
+        if thumbnail.raw_display_is_stale(file_path, orientation, prefer_embedded_raw_thumbnail) {
+            let _ = Self::delete(thumbnail.file_id);
+            return Ok(None);
+        }
         if thumbnail.error_code == 1 {
             if thumbnail.is_stale(file_path, thumbnail_size) {
                 let _ = Self::delete(thumbnail.file_id);
@@ -7658,7 +7710,7 @@ impl AThumb {
         file_type: i64,
         orientation: i32,
         thumbnail_size: u32,
-        prefer_embedded_raw_thumbnail: bool,
+        prefer_embedded_raw_thumbnail: RawDisplayOptions,
         album_id: i64,
         force_regenerate: bool,
         seek_percent: Option<u8>,
@@ -7722,7 +7774,7 @@ impl AThumb {
         file_type: i64,
         orientation: i32,
         thumbnail_size: u32,
-        prefer_embedded_raw_thumbnail: bool,
+        prefer_embedded_raw_thumbnail: RawDisplayOptions,
         force_regenerate: bool,
         known_duration: Option<u64>,
         seek_percent: Option<u8>,
@@ -7810,7 +7862,12 @@ impl AThumb {
             let prefer_embedded_raw_thumbnail = thumb
                 .thumb_key
                 .as_deref()
-                .is_some_and(|key| key.starts_with('e'));
+                .map(|key| RawDisplayOptions {
+                    mode: if key.starts_with('e') || key.starts_with('b') { crate::t_raw_display::RawPreviewMode::Embedded } else { crate::t_raw_display::RawPreviewMode::Rendered },
+                    auto_bright: key.starts_with('a') || key.starts_with('b'),
+                    prefer_pair: false,
+                })
+                .unwrap_or_default();
 
             return Ok(Self::create_cache_backed_thumb_for_library(
                 file_id,
@@ -10234,5 +10291,27 @@ mod album_filter_tests {
         for path in ["", ".", "..", "../sibling", "parent/child", "parent\\child", "/absolute"] {
             assert!(Album::edit(1,"name","",7,0,&[path.into()]).is_err());
         }
+    }
+}
+
+#[cfg(test)]
+mod raw_display_cache_tests {
+    use super::*;
+    use crate::t_raw_display::RawPreviewMode;
+
+    #[test]
+    fn raw_display_cache_separates_modes_and_normalizes_missing_orientation() {
+        let key = |mode, orientation| AThumb::build_thumb_key(
+            "raw-display-test", 42, 512, Some(123), orientation,
+            Some(RawDisplayOptions { mode, prefer_pair: false, auto_bright: false }),
+        );
+        for mode in [RawPreviewMode::Embedded, RawPreviewMode::Rendered] {
+            let bright_key = AThumb::build_thumb_key("raw-display-test", 42, 512, Some(123), 1,
+                Some(RawDisplayOptions { mode, prefer_pair: false, auto_bright: true }));
+            assert_ne!(key(mode, 1), bright_key);
+        }
+        assert_ne!(key(RawPreviewMode::Embedded, 1), key(RawPreviewMode::Rendered, 1));
+        assert_eq!(key(RawPreviewMode::Embedded, 0), key(RawPreviewMode::Embedded, 1));
+        assert_ne!(key(RawPreviewMode::Embedded, 6), key(RawPreviewMode::Embedded, 1));
     }
 }

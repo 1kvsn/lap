@@ -1152,6 +1152,7 @@
     "loading": "Lade...",
     "loading_original": "Originalfoto wird geladen...",
     "failed": "Foto konnte nicht geladen werden. Die Datei fehlt oder ist beschädigt.",
+    "raw_render_unavailable": "RAW kann nicht gerendert werden; eingebettete Vorschau angezeigt.",
     "toolbar": {
       "prev": "Vorheriges",
       "next": "Nächstes",
@@ -1254,12 +1255,31 @@
       "show_status_bar": "Statusleiste",
       "auto_check_updates": "Automatisch nach Updates suchen"
     },
+    "raw": {
+      "title": "RAW",
+      "section_pairs": "Gepaarte Dateien",
+      "pair_source": "Standardanzeige für Paare",
+      "pair_source_hint": "Wird für gepaarte Miniaturansichten und Vorschauen verwendet.",
+      "pair_jpeg": "JPEG / HEIC",
+      "rawPreviewSource": "Standard-Vorschauquelle",
+      "rawRenderBrightness": "Helligkeit beim Rendern",
+      "option_embedded": "Eingebettete Vorschau bevorzugen",
+      "option_rendered": "RAW immer rendern",
+      "brightness_hint": "Gilt beim Rendern von RAW, auch wenn keine eingebettete Vorschau verfügbar ist.",
+      "switch_to": "Zu {source} wechseln",
+      "show_pair": "Zugehöriges {format} anzeigen",
+      "source_embedded": "Eingebettet",
+      "source_rendered": "Gerendert",
+      "source_brightened": "Aufgehellt",
+      "option_original": "Originale Belichtung",
+      "option_brightened": "Aufgehellt",
+      "preview_mode": "RAW-Vorschaumodus"
+    },
     "browse": {
       "title": "Durchsuchen",
       "section_album": "Album",
       "show_subfolder_files": "Dateien aus Unterordnern anzeigen",
       "show_subfolder_files_hint": "Die Ordneransicht enthält Dateien in Unterordnern",
-      "section_file_display": "Dateianzeige",
       "group_raw_jpeg_pairs": "RAW-Paare gruppieren",
       "group_raw_jpeg_pairs_hint": "Passende RAW- und JPEG/HEIC-Dateien als ein Element anzeigen",
       "section_sorting": "Sortierung",
@@ -1509,12 +1529,6 @@
       "section_thumbnail_cache": "Miniaturansichts-Cache",
       "thumbnail_quality": "Miniaturansichtsqualität",
       "thumbnail_quality_hint": "Legt die Auflösung generierter Miniaturansichten fest. Höhere Einstellungen sehen schärfer aus, benötigen aber mehr Zeit zur Erstellung und mehr Speicherplatz",
-      "raw_thumbnail_source": "RAW-Miniaturansichtsquelle",
-      "raw_thumbnail_source_hint": "Wählen Sie, wie Miniaturansichten für RAW-Dateien erstellt werden",
-      "raw_thumbnail_source_options": [
-        "RAW-Rendering (Standard)",
-        "Eingebettete Vorschau (schneller)"
-      ],
       "section_map": "Karte",
       "map_provider": "Kartendienst",
       "map_provider_hint": "Wählt den Kartendienst für die Kartenansicht",

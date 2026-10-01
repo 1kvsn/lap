@@ -637,7 +637,7 @@ async function loadFileInfo(fileId: number) {
         file.file_path,
         false,
         Number(file.modified_at || 0),
-        config.settings.rawThumbnailSource,
+        true, // Match the export decoder and pixel coordinates.
       );
       initialImageSrc.value = typeof src === 'string' ? src : '';
     }
@@ -1457,7 +1457,7 @@ const initEditImage = async () => {
           fileInfo.value.file_path,
           false,
           Number(fileInfo.value.modified_at || 0),
-          config.settings.rawThumbnailSource,
+          true, // Match the export decoder and pixel coordinates.
         );
         if (previewSrc) {
           imageSrc.value = previewSrc;

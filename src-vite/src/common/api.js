@@ -2,6 +2,7 @@ import { invoke } from '@tauri-apps/api/core';
 import { listen } from '@tauri-apps/api/event';
 import { config } from '@/common/config';
 import { separator, localeComp } from '@/common/utils';
+import { getRawDisplayOptions } from './rawDisplay';
 
 // library
 
@@ -1209,7 +1210,7 @@ export async function editFileComment(fileId, comment) {
 // get file thumb
 export async function getFileThumb(fileId, filePath, fileType, orientation, thumbnailSize, forceRegenerate, thumbnailSeekPercent = null) {
   try {
-    const result = await invoke('get_file_thumb', { fileId, filePath, fileType, orientation, thumbnailSize, rawThumbnailSource: config.settings.rawThumbnailSource || 'processed', forceRegenerate, thumbnailSeekPercent });
+    const result = await invoke('get_file_thumb', { fileId, filePath, fileType, orientation, thumbnailSize, rawDisplayOptions: getRawDisplayOptions(), forceRegenerate, thumbnailSeekPercent });
     if(result) {
       return result;
     };
@@ -1231,7 +1232,7 @@ export async function cleanUnusedThumbnailCache(libraryId = null) {
 
 export async function getFileThumbById(fileId, thumbnailSize, forceRegenerate = false) {
   try {
-    const result = await invoke('get_file_thumb_by_id', { fileId, thumbnailSize, rawThumbnailSource: config.settings.rawThumbnailSource || 'processed', forceRegenerate });
+    const result = await invoke('get_file_thumb_by_id', { fileId, thumbnailSize, rawDisplayOptions: getRawDisplayOptions(), forceRegenerate });
     if (result) {
       return result;
     }
@@ -1243,7 +1244,7 @@ export async function getFileThumbById(fileId, thumbnailSize, forceRegenerate = 
 
 export async function getFileThumbs(files, thumbnailSize, forceRegenerate = false, trustCached = false) {
   try {
-    return await invoke('get_file_thumbs', { files, thumbnailSize, rawThumbnailSource: config.settings.rawThumbnailSource || 'processed', forceRegenerate, trustCached });
+    return await invoke('get_file_thumbs', { files, thumbnailSize, rawDisplayOptions: getRawDisplayOptions(), forceRegenerate, trustCached });
   } catch (error) {
     console.log('Failed to get file thumbs:', error);
   }
@@ -1867,7 +1868,7 @@ export async function indexAlbum(albumId, skipFilePath = null) {
     await invoke('index_album', {
       albumId,
       thumbnailSize: config.settings.thumbnailSize || 512,
-      rawThumbnailSource: config.settings.rawThumbnailSource || 'processed',
+      rawDisplayOptions: getRawDisplayOptions(),
       skipFilePath,
       groupRawJpegPairs: Boolean(config.settings.groupRawJpegPairs),
     });
