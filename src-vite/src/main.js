@@ -13,16 +13,20 @@ import '@/assets/app.css'
 
 // I18n
 import en from '@/locales/en.json'
-import zh from '@/locales/zh.json'
+import de from '@/locales/de.json'
 import es from '@/locales/es.json'
 import fr from '@/locales/fr.json'
-import de from '@/locales/de.json'
+import it from '@/locales/it.json'
+import hu from '@/locales/hu.json'
+import nl from '@/locales/nl.json'
+import pl from '@/locales/pl.json'
+import pt from '@/locales/pt.json'
+import ru from '@/locales/ru.json'
+import uk from '@/locales/uk.json'
+import zhCN from '@/locales/zh-CN.json'
+import zhTW from '@/locales/zh-TW.json'
 import ja from '@/locales/ja.json'
 import ko from '@/locales/ko.json'
-import ru from '@/locales/ru.json'
-import pt from '@/locales/pt.json'
-import pl from '@/locales/pl.json'
-import nl from '@/locales/nl.json'
 
 // Create the app instance
 const app = createApp(App)
@@ -58,16 +62,20 @@ const i18n = createI18n({
   fallbackLocale: "en",
   messages: {
     en,
-    zh,
+    de,
     es,
     fr,
-    de,
-    ja,
-    ko,
-    ru,
-    pt,
+    it,
+    hu,
+    nl,
     pl,
-    nl
+    pt,
+    ru,
+    uk,
+    zh: zhCN,
+    'zh-TW': zhTW,
+    ja,
+    ko
   },
 })
 
