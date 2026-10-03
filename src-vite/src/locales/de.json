@@ -703,7 +703,8 @@
       "set_as": "Festlegen als",
       "set_desktop_wallpaper": "Als Desktop-Hintergrund festlegen",
       "show_info": "Info anzeigen",
-      "remove_from_collection": "Aus Sammlung entfernen"
+      "remove_from_collection": "Aus Sammlung entfernen",
+      "create_montage": "Montage erstellen"
     },
     "calendar": {
       "monthly": "Monatlich",
@@ -1057,6 +1058,46 @@
       "overwrite": "Überschreiben",
       "save_as_new": "Speichern unter",
       "overwrite_confirm": "Originaldatei überschreiben? Kann nicht rückgängig gemacht werden."
+    },
+    "montage": {
+      "title": "Montage",
+      "layout": "Layout",
+      "grid": "Raster",
+      "mosaic": "Mosaik",
+      "pile": "Fotostapel",
+      "shuffle": "Zufallsmontage",
+      "angle": "Winkel: {value}°",
+      "scale": "Maßstab: {value} %",
+      "shadow": "Schatten zeichnen",
+      "style": "Stil",
+      "export": "Export: {size}",
+      "random_rotation": "Zufällige Drehung",
+      "border_width": "Rahmenbreite",
+      "photos": "Fotos ({count})",
+      "add": "Hinzufügen",
+      "photos_hint": "Ziehen zum Sortieren · Rechtsklick zum Entfernen",
+      "add_none": "Wählen Sie in Lap Fotos aus, die noch nicht in der Montage sind, und klicken Sie auf Hinzufügen.",
+      "hint_pile": "Fotostapel: ziehen zum Verschieben · mit dem Drehregler drehen und skalieren · das gegriffene Foto kommt nach vorne",
+      "hint_grid": "Raster: Fotos füllen jede Zelle (zentriert zugeschnitten) · ein Foto auf ein anderes ziehen, um sie zu tauschen",
+      "hint_mosaic": "Mosaik: lückenlos, Fotos behalten ihr Seitenverhältnis · ein Foto auf ein anderes ziehen, um sie zu tauschen",
+      "page": "Seite",
+      "page_size": "Format",
+      "page_screen": "Bildschirm 16:9",
+      "page_square": "Quadrat",
+      "orientation": "Ausrichtung",
+      "landscape": "Querformat",
+      "portrait": "Hochformat",
+      "background": "Hintergrund",
+      "spacing": "Abstand",
+      "border": "Rahmen",
+      "save_failed": "Montage konnte nicht gespeichert werden:",
+      "not_enough_photos": "Wählen Sie mindestens 2 Fotos aus, um eine Montage zu erstellen.",
+      "too_many_photos": "Nur die ersten {count} Fotos werden für die Montage verwendet.",
+      "save_title": "Montage speichern",
+      "folder": "Ordner",
+      "file_name": "Dateiname",
+      "browse": "Durchsuchen...",
+      "folder_required": "Wählen Sie einen Ordner."
     }
   },
   "file_info": {

@@ -3450,6 +3450,8 @@ const backupState = ref<any>(null);
 let unlistenKeydown: () => void;
 let unlistenImageViewer: () => void;
 let unlistenImageEditor: (() => void) | null = null;
+let unlistenMontage: (() => void) | null = null;
+let unlistenMontageAdd: (() => void) | null = null;
 let unlistenFaceIndexProgress: (() => void) | null = null;
 let unlistenLibraryTotalRefreshed: (() => void) | null = null;
 let unlistenImportFilesAdded: (() => void) | null = null;
@@ -4006,6 +4008,7 @@ function handleItemAction(payload: { action: string, index: number }) {
         forceSplitCount: files.length === 2 ? 2 : 4,
       });
     },
+    'create-montage': () => void openMontage(),
     'copy': () => void clickCopyImages(fileList.value[selectedItemIndex.value]),
     'rename': clickRename,
     'move-within-library': () => showMoveTo.value = true,
@@ -5378,6 +5381,28 @@ onMounted( async() => {
     }
   });
 
+  unlistenMontage = await listen('message-from-montage', async (event: any) => {
+    const { type, filePath } = event.payload as any;
+    if (type !== 'success') return;
+    try {
+      await (await WebviewWindow.getByLabel('montage'))?.destroy();
+    } catch (error) {
+      console.error('Failed to destroy Montage window from parent:', error);
+    }
+    // ponytail: saved elsewhere, the file is not indexed now; it appears when its folder is scanned
+    if (normalizePathForCompare(getFolderPath(filePath)) === normalizePathForCompare(montageSourceFolder)) {
+      await onFileSaved(true, { saveAsNew: true, filePath, saveAsContext: montageSaveAsContext });
+    } else {
+      toast.success(localeMsg.value.tooltip.save_image.save_as_success || localeMsg.value.tooltip.save_image.success);
+    }
+  });
+
+  // "+ Add" in the montage window: send it the photos selected here
+  unlistenMontageAdd = await listen('montage-add-request', async () => {
+    const fileIds = await getMontageImageIds();
+    await (await WebviewWindow.getByLabel('montage'))?.emit('montage-add-files', { fileIds });
+  });
+
   unlistenImageEditor = await listen('message-from-image-editor', async (event: any) => {
     const { type, saveAsNew, filePath, sourceFileId } = event.payload as any;
     const sourceId = Number(sourceFileId || 0);
@@ -5668,6 +5693,8 @@ onBeforeUnmount(() => {
   // unlisten
   unlistenImageViewer();
   if (unlistenImageEditor) unlistenImageEditor();
+  if (unlistenMontage) unlistenMontage();
+  if (unlistenMontageAdd) unlistenMontageAdd();
   if (unlistenKeydown) unlistenKeydown();
   if (unlistenTriggerNextAlbum) unlistenTriggerNextAlbum();
   if (unlistenIndexProgress) unlistenIndexProgress();
@@ -10293,6 +10320,87 @@ async function syncSelectionToImageViewer(index: number) {
     fileCount: fileList.value.length,
     nextFilePath: next && !next.isPlaceholder && next.file_type === 1 ? next.file_path : '',
     pane: 'left',
+  });
+}
+
+const MONTAGE_MAX_PHOTOS = 50;
+let montageSaveAsContext: SaveAsContext | null = null;
+let montageSourceFolder = '';
+
+// selected images, including the ones not loaded in the view yet
+async function getMontageImages() {
+  return ((await getActionableSelectedItemsForAction()) || []).filter((item: any) => item.file_type !== 2);
+}
+
+async function getMontageImageIds() {
+  return (await getMontageImages()).map((item: any) => Number(item.id));
+}
+
+let montageOpening = false;
+
+async function openMontage() {
+  // one montage at a time: bring the open one to the front
+  if (montageOpening) return;
+  const openWindow = await WebviewWindow.getByLabel('montage');
+  if (openWindow) {
+    await openWindow.unminimize();
+    await openWindow.setFocus();
+    return;
+  }
+  montageOpening = true;
+  try {
+    await createMontageWindow();
+  } finally {
+    montageOpening = false;
+  }
+}
+
+async function createMontageWindow() {
+  const images = await getMontageImages();
+  const imageIds = images.map((item: any) => Number(item.id));
+  if (imageIds.length < 2) {
+    toast.warning(t('msgbox.montage.not_enough_photos'));
+    return;
+  }
+  if (imageIds.length > MONTAGE_MAX_PHOTOS) {
+    toast.warning(t('msgbox.montage.too_many_photos', { count: MONTAGE_MAX_PHOTOS }));
+  }
+
+  // the save dialog proposes the first photo's folder, like the image editor's "save as new"
+  montageSaveAsContext = getCurrentSaveAsContext(images[0]);
+  montageSourceFolder = getFolderPath(images[0].file_path);
+
+  // the montage window grows itself if its settings panel does not fit
+  const width = Math.min(1280, window.screen.availWidth);
+  const height = Math.min(800, window.screen.availHeight);
+
+  const newWindow = new WebviewWindow('montage', {
+    url: `/montage?fileIds=${imageIds.slice(0, MONTAGE_MAX_PHOTOS).join(',')}`,
+    title: 'Montage',
+    width,
+    height,
+    center: true,
+    minWidth: 800,
+    minHeight: 500,
+    resizable: true,
+    maximizable: false,
+    visible: false,
+    transparent: true,
+    decorations: isMac,
+    ...(isMac && {
+      titleBarStyle: 'overlay',
+      hiddenTitle: true,
+      minimizable: false,
+    }),
+  });
+
+  // wait until the window exists, so a second click finds it
+  await new Promise<void>(resolve => {
+    newWindow.once('tauri://created', () => {
+      newWindow?.show();
+      resolve();
+    });
+    newWindow.once('tauri://error', () => resolve());
   });
 }
 
