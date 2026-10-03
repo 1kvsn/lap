@@ -3037,23 +3037,39 @@ async function clearContentInternalDrag(event?: PointerEvent) {
     if (selected?.id) {
       let done = 0;
       let indexFailureCount = 0;
+      let transferFailureCount = 0;
+      let applyAllPolicy: FileConflictPolicy | null = null;
       const affectedAlbumIds = new Set<number>([albumId]);
       for (const file of files) {
         if (!copy && file.folder_id === selected.id) continue;
+        const conflict = await resolveConflictPolicy(
+          file.file_path,
+          getFolderName(file.file_path),
+          destPath,
+          applyAllPolicy,
+          files.length > 1,
+          !copy,
+        );
+        if (conflict.applyAll) applyAllPolicy = conflict.policy;
+        if (conflict.policy === 'skip') continue;
         if (copy) {
-          const copiedPath = await copyFile(file.file_path, destPath);
+          const copiedPath = await copyFile(file.file_path, destPath, conflict.policy);
           if (copiedPath) {
             if (await addFileToDb(selected.id, copiedPath)) {
               done++;
             } else {
               indexFailureCount++;
             }
+          } else {
+            transferFailureCount++;
           }
         } else {
-          const movedPath = await moveFile(file.id, file.file_path, selected.id, destPath);
+          const movedPath = await moveFile(file.id, file.file_path, selected.id, destPath, conflict.policy);
           if (movedPath) {
             done++;
             affectedAlbumIds.add(Number(file.album_id || 0));
+          } else {
+            transferFailureCount++;
           }
         }
       }
@@ -3065,6 +3081,14 @@ async function clearContentInternalDrag(event?: PointerEvent) {
       if (indexFailureCount > 0) {
         toast.error(t('msgbox.copy_to_folder.index_error', {
           count: indexFailureCount.toLocaleString(),
+        }));
+      }
+      if (transferFailureCount > 0) {
+        toast.error(t(copy ? 'msgbox.copy_to_folder.error' : 'msgbox.move_to_folder.error', {
+          source: files.length === 1
+            ? getFolderName(files[0].file_path)
+            : t('toolbar.filter.select_count', { count: files.length.toLocaleString() }),
+          dest: getFolderName(destPath) || destPath,
         }));
       }
     }
